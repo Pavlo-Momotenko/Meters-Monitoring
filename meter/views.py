@@ -30,13 +30,22 @@ class MeterDetails(View):
     def post(self, request, pk):
         try:
             file = request.FILES.get('meter_file')
+            file.name = f"{pk}.csv"
             meter = Meter.objects.get(pk=pk)
-            meter.meter_csv_file = file
-            meter.save()
-            with open(file) as csv_file:
-                spamreader = csv.reader(csv_file)
-                for row in spamreader:
-                    print(', '.join(row))
+            if meter.meter_csv_file:
+                file_path = str(meter.meter_csv_file)
+                print('yes', file_path)
+            else:
+                meter.meter_csv_file = file
+                meter.save()
+                file_path = str(meter.meter_csv_file)
+                print('no', file_path)
+
+            print(str(file))
+            # with open(file) as csv_file:
+            #     spamreader = csv.reader(csv_file)
+            #     for row in spamreader:
+            #         print(', '.join(row))
 
             meter = Meter.objects.get(pk=pk)
         except Meter.DoesNotExist:
