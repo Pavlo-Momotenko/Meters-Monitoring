@@ -13,29 +13,41 @@
     <p class="h1 text-start m-5">{{ meter.name }} details</p>
 
     <div class="card border-secondary mb-3 m-5" style="max-width: 100%;">
-      <div class="card-body text-dark row">
-        <h5 class="col-6" style="font-size: 1.5em">Resource: <strong>{{ meter.resource_type }}</strong></h5>
-        <h5 class="col-6" style="font-size: 1.5em">Unit: <strong>{{ meter.unit }}</strong></h5>
-        <h5 class="col-6" style="font-size: 1.5em">Last reading: <strong>Not Given</strong></h5>
-        <h5 class="col-6" style="font-size: 1.5em">Last reading date: <strong>Not Given</strong></h5>
-      </div>
+        <div class="card-body text-dark row">
+            <h5 class="col-6" style="font-size: 1.5em">Resource: <strong>{{ meter.resource_type }}</strong></h5>
+            <h5 class="col-6" style="font-size: 1.5em">Unit: <strong>{{ meter.unit }}</strong></h5>
+            <h5 class="col-6" style="font-size: 1.5em">Last reading:
+                {% if not meter.meter_csv_file %}
+                    <strong>Not Given</strong>
+                {% endif %}
+            </h5>
+            <h5 class="col-6" style="font-size: 1.5em">Last reading date:
+                {% if not meter.meter_csv_file %}
+                    <strong>Not Given</strong>
+                {% endif %}
+            </h5>
+        </div>
     </div>
 
     <p class="h2 text-start m-5">Upload Readings</p>
 
     <div class="card border-secondary mb-3 m-5" style="max-width: 100%;">
-      <div class="card-body text-dark row m-2">
-          <div class="col-6">
-            <input type="file" class=" form-control" id="inputGroupFile01" aria-describedby="inputGroupFileAddon01" aria-label="Upload">
-          </div>
-          <div class="col-3"></div>
-          <button type="button" class="btn btn-success col-1" style="margin-right: 2em">Upload</button>
-          <button type="button" class="btn btn-danger col-1">Reset</button>
-      </div>
+        <div class="card-body text-dark row m-2">
+            <div class="col-6">
+                <input type="file" class=" form-control" id="inputGroupFile01" aria-describedby="inputGroupFileAddon01"
+                       aria-label="Upload">
+            </div>
+            <div class="col-3"></div>
+            <button type="button" class="btn btn-success col-1" style="margin-right: 2em">Upload</button>
+            <button type="button" class="btn btn-danger col-1">Reset</button>
+        </div>
     </div>
 
     <p class="h2 text-start m-5">Meter Consumptions</p>
     <div class="card border-secondary mb-3 m-5" style="max-width: 100%;">
-      <h3 class="m-5 text-center" style="font-size: 20em;">Not Given</h3>
+        {% if not meter.meter_csv_file %}
+            <h3 class="m-5 text-center" style="font-size: 20em;">Not Given</h3>
+        {% endif %}
     </div>
+
 {% endblock %}
