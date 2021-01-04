@@ -1,7 +1,7 @@
 from django.http import HttpResponse, Http404
 from django.shortcuts import render
 from django.views import View
-from meter.models import Meter, MeterInfo
+from meter.models import Meter
 
 
 # Create your views here.
@@ -28,8 +28,8 @@ class IndexPage(View):
 class MeterDetails(View):
     def get(self, request, pk):
         try:
-            meter = MeterInfo.objects.get(meter_raw_info__id=pk)
-        except MeterInfo.DoesNotExist:
+            meter = Meter.objects.get(pk=pk)
+        except Meter.DoesNotExist:
             return Http404
         return render(request, 'meter/meter_details.html', {"meter": meter})
 
