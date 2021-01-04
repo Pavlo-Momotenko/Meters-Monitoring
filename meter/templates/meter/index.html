@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Index{% endblock %}
+
+{% block styles %}
+    <link rel="stylesheet" type="text/css" href="{% static 'meter/css/index.css' %}">
+{% endblock %}
+
+{% block content %}
+    <p class="h1 text-center m-5">Meters</p>
+
+    <a href="{% url "new_meter" %}" class="btn btn-success float-lg-end m-5">Create Meter</a>
+
+    <div class="m-5">
+        {% include 'meter/meters_list.html' %}
+    </div>
+{% endblock %}

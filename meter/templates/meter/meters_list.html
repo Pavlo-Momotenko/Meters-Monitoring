@@ -1,0 +1,12 @@
+<div class="meters-list">
+    {% for meter in meters %}
+    <div class="card" style="width: 100%; margin-bottom: .5em;">
+      <div class="card-body row">
+        <a href="{% url 'meter_details' meter.pk %}" style="font-size: 1.5em; margin-left: 2.1em;" class="col-3">{{ meter.name }}</a>
+        <a style="font-size: 1.5em; color: black; text-decoration: None;" class="col-3">Resource: {{ meter.resource_type }}</a>
+        <a style="font-size: 1.5em; color: black; text-decoration: None;" class="col-3">Unit: {{ meter.unit }}</a>
+        <a href="#" class="btn btn-outline-secondary col-2">Delete</a>
+      </div>
+    </div>
+    {% endfor %}
+</div>
