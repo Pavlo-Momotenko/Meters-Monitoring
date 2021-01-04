@@ -11,6 +11,24 @@
     <p class="h1 text-center m-5">Meters</p>
 
     <a href="{% url "new_meter" %}" class="btn btn-success float-lg-end m-5">Create Meter</a>
+    {% if success %}
+        <div class="alert alert-success alert-dismissible fade show top-50 start-50 translate-middle" role="alert"
+             style="margin-top: 11em; margin-bottom: -4em; width: 50%">
+            <strong>Holy guacamole!</strong> You have created new meter! You can <a href="{% url 'index' %}"
+                                                                                    class="alert-link">refresh</a> this
+            page or dismiss me.
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    {% elif success == False %}
+        <div class="alert alert-danger alert-dismissible fade show top-50 start-50 translate-middle" role="alert"
+             style="margin-top: 11em; margin-bottom: -4em; width: 50%">
+            <strong>Something wrong!</strong> This meter has been created already! You can <a href="{% url 'index' %}"
+                                                                                              class="alert-link">refresh</a>
+            this
+            page or dismiss me.
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    {% endif %}
 
     <div class="m-5">
         {% include 'meter/meters_list.html' %}

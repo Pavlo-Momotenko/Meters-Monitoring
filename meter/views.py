@@ -1,7 +1,7 @@
 from django.http import HttpResponse, Http404
 from django.shortcuts import render
 from django.views import View
-from meter.models import Meter
+from meter.models import Meter, MeterInfo
 from .forms import CreateMeterForm
 
 
@@ -15,10 +15,11 @@ class IndexPage(View):
             meter_resource = request.POST.get('meter_resource')
             meter_unit = request.POST.get('meter_unit')
             new_meter = Meter.objects.create(name=meter_name, resource_type=meter_resource, unit=meter_unit)
+            success = True
         except:
-            pass
+            success = False
         meters = Meter.objects.all().order_by('pk')
-        return render(request, 'meter/index.html', {"meters": meters})
+        return render(request, 'meter/index.html', {"meters": meters, 'success': success})
 
     def get(self, request):
         meters = Meter.objects.all().order_by('pk')
