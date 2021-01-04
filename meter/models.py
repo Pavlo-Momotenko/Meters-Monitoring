@@ -7,4 +7,8 @@ class Meter(models.Model):
     resource_type = models.CharField(max_length=255)
     unit = models.CharField(max_length=255)
 
+
 class MeterInfo(models.Model):
+    meter_raw_info = models.ManyToManyField(Meter)
+    meter_csv_file = models.FileField(upload_to='meter_csv/')
+
