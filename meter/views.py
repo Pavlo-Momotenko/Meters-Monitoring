@@ -41,11 +41,11 @@ class MeterDetails(View):
                 file_path = str(meter.meter_csv_file)
                 print('no', file_path)
 
-            print(str(file))
-            # with open(file) as csv_file:
-            #     spamreader = csv.reader(csv_file)
-            #     for row in spamreader:
-            #         print(', '.join(row))
+            dates = list()
+            with open(file_path) as csv_file:
+                for row in csv.reader(csv_file):
+                    print(row[0].split('-'))
+                    # dates.append()
 
             meter = Meter.objects.get(pk=pk)
         except Meter.DoesNotExist:
