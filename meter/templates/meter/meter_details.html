@@ -32,15 +32,19 @@
     <p class="h2 text-start m-5">Upload Readings</p>
 
     <div class="card border-secondary mb-3 m-5" style="max-width: 100%;">
-        <div class="card-body text-dark row m-2">
-            <div class="col-6">
-                <input type="file" class=" form-control" id="inputGroupFile01" aria-describedby="inputGroupFileAddon01"
-                       aria-label="Upload">
+        <form action="{% url 'meter_details' pk %}" method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="card-body text-dark row m-2">
+                <div class="col-6">
+                    <input type="file" class=" form-control" id="inputGroupFile01"
+                           aria-describedby="inputGroupFileAddon01"
+                           aria-label="Upload" name="meter_file" required>
+                </div>
+                <div class="col-3"></div>
+                <button type="submit" class="btn btn-success col-1" style="margin-right: 2em">Upload</button>
+                <button type="reset" class="btn btn-danger col-1">Reset</button>
             </div>
-            <div class="col-3"></div>
-            <button type="button" class="btn btn-success col-1" style="margin-right: 2em">Upload</button>
-            <button type="button" class="btn btn-danger col-1">Reset</button>
-        </div>
+        </form>
     </div>
 
     <p class="h2 text-start m-5">Meter Consumptions</p>

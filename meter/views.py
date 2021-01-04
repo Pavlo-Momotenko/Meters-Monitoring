@@ -2,6 +2,7 @@ from django.http import HttpResponse, Http404
 from django.shortcuts import render
 from django.views import View
 from meter.models import Meter
+import csv
 
 
 # Create your views here.
@@ -26,14 +27,30 @@ class IndexPage(View):
 
 
 class MeterDetails(View):
+    def post(self, request, pk):
+        try:
+            file = request.FILES.get('meter_file')
+            meter = Meter.objects.get(pk=pk)
+            meter.meter_csv_file = file
+            meter.save()
+            with open(file) as csv_file:
+                spamreader = csv.reader(csv_file)
+                for row in spamreader:
+                    print(', '.join(row))
+
+            meter = Meter.objects.get(pk=pk)
+        except Meter.DoesNotExist:
+            return Http404
+        return render(request, 'meter/meter_details.html', {"meter": meter, 'pk': pk})
+
     def get(self, request, pk):
         try:
             meter = Meter.objects.get(pk=pk)
         except Meter.DoesNotExist:
             return Http404
-        return render(request, 'meter/meter_details.html', {"meter": meter})
+        return render(request, 'meter/meter_details.html', {"meter": meter, 'pk': pk})
 
 
 class NewMeter(View):
     def get(self, request):
-        return render(request, 'meter/new_meter.html',  {})
+        return render(request, 'meter/new_meter.html', {})
