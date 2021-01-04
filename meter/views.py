@@ -10,11 +10,15 @@ from .forms import CreateMeterForm
 
 class IndexPage(View):
     def post(self, request):
-        meter_name = request.POST.get('meter_name')
-        meter_resource = request.POST.get('meter_resource')
-        meter_unit = request.POST.get('meter_unit')
-        print(meter_name, meter_resource, meter_unit)
-        return render(request, 'meter/index.html', {})
+        try:
+            meter_name = request.POST.get('meter_name')
+            meter_resource = request.POST.get('meter_resource')
+            meter_unit = request.POST.get('meter_unit')
+            new_meter = Meter.objects.create(name=meter_name, resource_type=meter_resource, unit=meter_unit)
+        except:
+            pass
+        meters = Meter.objects.all().order_by('pk')
+        return render(request, 'meter/index.html', {"meters": meters})
 
     def get(self, request):
         meters = Meter.objects.all().order_by('pk')
