@@ -12,17 +12,17 @@
 {% block content %}
     <p class="h1 text-start m-5">Create Meter</p>
 
-    <form action="#" method="post" enctype="multipart/form-data">
+    <form action="{% url "index" %}" method="post" enctype="multipart/form-data">
         {% csrf_token %}
 
         <div class="input-group col-9 m-5" style="width: 50%">
             <span class="input-group-text">Meter Name</span>
-            <input type="text" aria-label="Meter name" class="form-control" id="meter_name">
+            <input type="text" aria-label="Meter name" class="form-control" name="meter_name" required minlength="3" maxlength="60">
         </div>
 
         <div class="input-group mb-3 m-5" style="width: 50%">
             <span class="input-group-text">Resource</span>
-            <select class="form-select" aria-label="Resource type" id="meter_resource">
+            <select class="form-select" aria-label="Resource type" name="meter_resource" required>
                 <option selected>Electricity</option>
                 <option value="1">Water</option>
                 <option value="2">Gas</option>
@@ -31,11 +31,11 @@
 
         <div class="input-group col-9 m-5" style="width: 50%">
             <span class="input-group-text">Unit</span>
-            <input type="text" aria-label="Unit" class="form-control" id="meter_unit">
+            <input type="text" aria-label="Unit" class="form-control" name="meter_unit" required maxlength="20">
         </div>
 
         <a href="{% url "index" %}" class="btn btn-secondary float-lg-start m-5">Cancel</a>
-        <a href="{% url "index" %}" class="btn btn-success float-lg-start m-5" id="meter_submit" type="submit">Create
-            Meter</a>
+        <button class="btn btn-success float-lg-start m-5" id="meter_submit" type="submit">Create
+            Meter</button>
     </form>
 {% endblock %}
