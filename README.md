@@ -22,3 +22,22 @@
 6. Model Meter has a constraint unique, so if you will try to create a meter with the same name, you will get error
    message:
    ![Error message](./readme_imgs/6.png)
+
+7. Meter details page without statistic data:
+   ![Meter details image](./readme_imgs/7.png)
+
+8. Meter details after uploading data in `.csv` file:
+   ![Meter details after uploading](./readme_imgs/8.png)
+
+9. Also, you can add new data or update previous by loading `*.csv` files with data:
+   ![Edited meter graph](./readme_imgs/9.png)
+
+10. If you need to remove all meter data, you should press `Reset` button:
+    ![Removed meter data](./readme_imgs/10.png)
+
+11. You can delete a meter on using `Delete` button that located aside:
+    ![3 meters](./readme_imgs/11.png)
+
+![Arrow image](./readme_imgs/13.png)
+
+![2 meters](./readme_imgs/12.png)
