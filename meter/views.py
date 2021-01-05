@@ -71,8 +71,12 @@ class DataReadHelper:
             opened.writerow(['DATE', 'VALUE'])
             for key, value in sorted_dates:
                 opened.writerow([str(key), str(value)])
-
         return True
+
+    def file_checker(self, file):
+        if str(file.name)[:4] == '.csv':
+            return True
+        return False
 
 
 class IndexPage(View):
@@ -113,15 +117,16 @@ class MeterDetails(View, DataReadHelper):
         else:
             try:
                 file = request.FILES.get('meter_file')
-                file.name = f"{pk}.csv"
-                meter = Meter.objects.get(pk=pk)
-                if meter.meter_csv_file:
-                    file_path = str(meter.meter_csv_file)
-                    self.get_ordered_value_and_key_from_not_existing_csv(file_path=file_path, file=file, pk=pk)
-                else:
-                    meter.meter_csv_file = file
-                    meter.save()
-                    file_path = str(meter.meter_csv_file)
+                if self.file_checker(file):
+                    file.name = f"{pk}.csv"
+                    meter = Meter.objects.get(pk=pk)
+                    if meter.meter_csv_file:
+                        file_path = str(meter.meter_csv_file)
+                        self.get_ordered_value_and_key_from_not_existing_csv(file_path=file_path, file=file, pk=pk)
+                    else:
+                        meter.meter_csv_file = file
+                        meter.save()
+                        file_path = str(meter.meter_csv_file)
             except Meter.DoesNotExist:
                 return Http404
         return redirect(request.path)
