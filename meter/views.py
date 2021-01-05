@@ -77,15 +77,20 @@ class DataReadHelper:
 
 class IndexPage(View):
     def post(self, request):
-        try:
-            meter_name = request.POST.get('meter_name')
-            meter_resource = request.POST.get('meter_resource')
-            meter_unit = request.POST.get('meter_unit')
-            new_meter = Meter.objects.create(name=meter_name, resource_type=meter_resource, unit=meter_unit)
-            success = True
-        except:
-            success = False
-        request.session['success'] = success
+        if request.POST.get('create_meter_button'):
+            try:
+                meter_name = request.POST.get('meter_name')
+                meter_resource = request.POST.get('meter_resource')
+                meter_unit = request.POST.get('meter_unit')
+                new_meter = Meter.objects.create(name=meter_name, resource_type=meter_resource, unit=meter_unit)
+                success = True
+            except:
+                success = False
+            request.session['success'] = success
+        else:
+            print(request.POST.get('delete_meter'))
+            meter = Meter.objects.get(pk=request.POST.get('delete_meter'))
+            meter.delete()
         return redirect(request.path)
 
     def get(self, request):
