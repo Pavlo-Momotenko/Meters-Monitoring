@@ -1,6 +1,8 @@
 import csv
 import datetime
 import operator
+import os
+from pathlib import Path
 from django.core.files import File
 
 from django.http import Http404
@@ -55,7 +57,6 @@ class DataReadHelper:
                 if value.isdigit():
                     dates_new['null'] = float(value)
 
-
         for key in dates_new:
             dates[key] = dates_new[key]
 
@@ -74,7 +75,6 @@ class DataReadHelper:
         return True
 
 
-
 class IndexPage(View):
     def post(self, request):
         try:
@@ -85,29 +85,41 @@ class IndexPage(View):
             success = True
         except:
             success = False
-        meters = Meter.objects.all().order_by('pk')
-        return render(request, 'meter/index.html', {"meters": meters, 'success': success})
+        request.session['success'] = success
+        return redirect(request.path)
 
     def get(self, request):
+        success = request.session.get('success', None)
+        if success in [True, False]:
+            del (request.session['success'])
+
         meters = Meter.objects.all().order_by('pk')
-        return render(request, 'meter/index.html', {"meters": meters})
+        return render(request, 'meter/index.html', {"meters": meters, "success": success})
 
 
 class MeterDetails(View, DataReadHelper):
     def post(self, request, pk):
-        try:
-            file = request.FILES.get('meter_file')
-            file.name = f"{pk}.csv"
-            meter = Meter.objects.get(pk=pk)
-            if meter.meter_csv_file:
-                file_path = str(meter.meter_csv_file)
-                self.get_ordered_value_and_key_from_not_existing_csv(file_path=file_path, file=file, pk=pk)
-            else:
-                meter.meter_csv_file = file
+        # print(Path(__file__).resolve().parent.parent)
+        if request.POST.get('reset_meter'):
+            if os.path.exists(f'meter_csv/{pk}.csv'):
+                os.remove(f'meter_csv/{pk}.csv')
+                meter = Meter.objects.get(pk=pk)
+                meter.meter_csv_file = None
                 meter.save()
-                file_path = str(meter.meter_csv_file)
-        except Meter.DoesNotExist:
-            return Http404
+        else:
+            try:
+                file = request.FILES.get('meter_file')
+                file.name = f"{pk}.csv"
+                meter = Meter.objects.get(pk=pk)
+                if meter.meter_csv_file:
+                    file_path = str(meter.meter_csv_file)
+                    self.get_ordered_value_and_key_from_not_existing_csv(file_path=file_path, file=file, pk=pk)
+                else:
+                    meter.meter_csv_file = file
+                    meter.save()
+                    file_path = str(meter.meter_csv_file)
+            except Meter.DoesNotExist:
+                return Http404
         return redirect(request.path)
 
     def get(self, request, pk):
