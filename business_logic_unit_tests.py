@@ -35,4 +35,3 @@ class ViewTest(TestCase):
     def test_list_meters(self):
         response = self.client.get('/meter/2/')
         self.assertEqual(response.status_code, 200)
-
