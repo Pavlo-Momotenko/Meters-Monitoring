@@ -13,15 +13,10 @@ from meter.models import Meter
 # Create your views here.
 
 class DataReadHelper:
-    def __init__(self, file_path, file=None):
-        self.file_path = file_path
-        self.file = file
-
-    def get_ordered_value_and_key_from_existing_csv(self):
+    def get_ordered_value_and_key_from_existing_csv(self, file_path):
         dates = dict()
         x_axis = list()
         y_axis = list()
-        file_path = self.file_path
 
         if file_path:
             with open(file_path) as csv_file:
@@ -40,6 +35,44 @@ class DataReadHelper:
                 y_axis.append(dates[i[0]])
 
         return x_axis, y_axis, dates
+
+    def get_ordered_value_and_key_from_not_existing_csv(self, file_path, file, pk):
+        x_axis, y_axis, dates = self.get_ordered_value_and_key_from_existing_csv(file_path)
+
+        file_path = file.read().decode('utf-8')
+
+        dates_new = dict()
+        x_axis_new = list()
+        y_axis_new = list()
+
+        for row in file_path.split('\r\n'):
+            if row:
+                date, value = row.split(',')
+            try:
+                date = date.split('-')
+                dates_new[datetime.date(year=int(date[0]), month=int(date[1]), day=int(date[2]))] = float(value)
+            except:
+                if value.isdigit():
+                    dates_new['null'] = float(value)
+
+
+        for key in dates_new:
+            dates[key] = dates_new[key]
+
+        sorted_dates = sorted(dates.items(), key=operator.itemgetter(0))
+        for i in sorted_dates:
+            x_axis_new.append(('0' if len(str(i[0].day)) < 2 else '') + str(i[0].day) + '/' + (
+                '0' if len(str(i[0].month)) < 2 else '') + str(i[0].month) + '/' + str(i[0].year))
+            y_axis_new.append(dates[i[0]])
+
+        with open(f"meter_csv/{pk}.csv", 'w', newline='') as csv_file:
+            opened = csv.writer(csv_file)
+            opened.writerow(['DATE', 'VALUE'])
+            for key, value in sorted_dates:
+                opened.writerow([str(key), str(value)])
+
+        return True
+
 
 
 class IndexPage(View):
@@ -60,7 +93,7 @@ class IndexPage(View):
         return render(request, 'meter/index.html', {"meters": meters})
 
 
-class MeterDetails(View):
+class MeterDetails(View, DataReadHelper):
     def post(self, request, pk):
         try:
             file = request.FILES.get('meter_file')
@@ -68,14 +101,11 @@ class MeterDetails(View):
             meter = Meter.objects.get(pk=pk)
             if meter.meter_csv_file:
                 file_path = str(meter.meter_csv_file)
-                # with open(file_path, 'r') as file:
-
-                print('yes', file_path)
+                self.get_ordered_value_and_key_from_not_existing_csv(file_path=file_path, file=file, pk=pk)
             else:
                 meter.meter_csv_file = file
                 meter.save()
                 file_path = str(meter.meter_csv_file)
-                print('no', file_path)
         except Meter.DoesNotExist:
             return Http404
         return redirect(request.path)
@@ -91,8 +121,7 @@ class MeterDetails(View):
             y_axis = list()
 
             if file_path:
-                helper = DataReadHelper(file_path=file_path)
-                x_axis, y_axis, dates = helper.get_ordered_value_and_key_from_existing_csv()
+                x_axis, y_axis, dates = self.get_ordered_value_and_key_from_existing_csv(file_path=file_path)
 
                 last_reading_date = max(dates)
                 last_reading = dates[max(dates)]

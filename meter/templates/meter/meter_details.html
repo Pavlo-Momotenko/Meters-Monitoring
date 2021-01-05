@@ -10,7 +10,7 @@
 {% endblock %}
 
 {% block content %}
-    <p class="h1 text-start m-5">{{ meter.name }} details</p>
+    <p class="h1 text-start m-5"><a href="{% url 'index' %}">Meters</a> / {{ meter.name }} details</p>
 
     <div class="card border-secondary mb-3 m-5" style="max-width: 100%;">
         <div class="card-body text-dark row">
