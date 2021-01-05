@@ -37,7 +37,5 @@
 
 11. You can delete a meter on using `Delete` button that located aside:
     ![3 meters](./readme_imgs/11.png)
-
-![Arrow image](./readme_imgs/13.png)
-
-![2 meters](./readme_imgs/12.png)
+    ![Arrow image](./readme_imgs/13.png)
+    ![2 meters](./readme_imgs/12.png)
