@@ -39,3 +39,22 @@
     ![3 meters](./readme_imgs/11.png)
     ![Arrow image](./readme_imgs/13.png)
     ![2 meters](./readme_imgs/12.png)
+
+## Launching
+
+1. Clone this repository.
+2. Install requirements: [`requirements.txt`][requirements-location]. You can use pip `pip install -r requirements.txt`.
+3. Create database schema `create database meter_project;`.
+4. Manage settings in [`settings.py`][settings-location]:
+   `DATABASES = {
+   'default': {
+   'ENGINE': 'django.db.backends.mysql',
+   'NAME': 'meter_project',
+   'USER': 'root',
+   'PASSWORD': '12345' } }`
+   
+5. Enjoy!
+
+[requirements-location]: ./requirements.txt
+
+[settings-location]: ./djangoTestProject/settings.py
