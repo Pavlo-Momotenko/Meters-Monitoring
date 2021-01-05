@@ -88,7 +88,6 @@ class IndexPage(View):
                 success = False
             request.session['success'] = success
         else:
-            print(request.POST.get('delete_meter'))
             meter = Meter.objects.get(pk=request.POST.get('delete_meter'))
             meter.delete()
         return redirect(request.path)
