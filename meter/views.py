@@ -19,63 +19,68 @@ class DataReadHelper:
         dates = dict()
         x_axis = list()
         y_axis = list()
+        try:
+            if file_path:
+                with open(file_path) as csv_file:
+                    for row in csv.reader(csv_file):
+                        try:
+                            date = row[0].split('-')
+                            dates[datetime.date(year=int(date[0]), month=int(date[1]), day=int(date[2]))] = float(row[1])
+                        except:
+                            if row[1].isdigit():
+                                dates['null'] = float(row[1])
 
-        if file_path:
-            with open(file_path) as csv_file:
-                for row in csv.reader(csv_file):
-                    try:
-                        date = row[0].split('-')
-                        dates[datetime.date(year=int(date[0]), month=int(date[1]), day=int(date[2]))] = float(row[1])
-                    except:
-                        if row[1].isdigit():
-                            dates['null'] = float(row[1])
-
-            sorted_dates = sorted(dates.items(), key=operator.itemgetter(0))
-            for i in sorted_dates:
-                x_axis.append(('0' if len(str(i[0].day)) < 2 else '') + str(i[0].day) + '/' + (
-                    '0' if len(str(i[0].month)) < 2 else '') + str(i[0].month) + '/' + str(i[0].year))
-                y_axis.append(dates[i[0]])
+                sorted_dates = sorted(dates.items(), key=operator.itemgetter(0))
+                for i in sorted_dates:
+                    x_axis.append(('0' if len(str(i[0].day)) < 2 else '') + str(i[0].day) + '/' + (
+                        '0' if len(str(i[0].month)) < 2 else '') + str(i[0].month) + '/' + str(i[0].year))
+                    y_axis.append(dates[i[0]])
+        except:
+            return x_axis, y_axis, dates
 
         return x_axis, y_axis, dates
 
     def get_ordered_value_and_key_from_not_existing_csv(self, file_path, file, pk):
         x_axis, y_axis, dates = self.get_ordered_value_and_key_from_existing_csv(file_path)
+        try:
+            file_path = file.read().decode('utf-8')
 
-        file_path = file.read().decode('utf-8')
+            dates_new = dict()
+            x_axis_new = list()
+            y_axis_new = list()
 
-        dates_new = dict()
-        x_axis_new = list()
-        y_axis_new = list()
+            for row in file_path.split('\r\n'):
+                if row:
+                    date, value = row.split(',')
+                try:
+                    date = date.split('-')
+                    dates_new[datetime.date(year=int(date[0]), month=int(date[1]), day=int(date[2]))] = float(value)
+                except:
+                    if value.isdigit():
+                        dates_new['null'] = float(value)
 
-        for row in file_path.split('\r\n'):
-            if row:
-                date, value = row.split(',')
-            try:
-                date = date.split('-')
-                dates_new[datetime.date(year=int(date[0]), month=int(date[1]), day=int(date[2]))] = float(value)
-            except:
-                if value.isdigit():
-                    dates_new['null'] = float(value)
+            for key in dates_new:
+                dates[key] = dates_new[key]
 
-        for key in dates_new:
-            dates[key] = dates_new[key]
+            sorted_dates = sorted(dates.items(), key=operator.itemgetter(0))
+            for i in sorted_dates:
+                x_axis_new.append(('0' if len(str(i[0].day)) < 2 else '') + str(i[0].day) + '/' + (
+                    '0' if len(str(i[0].month)) < 2 else '') + str(i[0].month) + '/' + str(i[0].year))
+                y_axis_new.append(dates[i[0]])
 
-        sorted_dates = sorted(dates.items(), key=operator.itemgetter(0))
-        for i in sorted_dates:
-            x_axis_new.append(('0' if len(str(i[0].day)) < 2 else '') + str(i[0].day) + '/' + (
-                '0' if len(str(i[0].month)) < 2 else '') + str(i[0].month) + '/' + str(i[0].year))
-            y_axis_new.append(dates[i[0]])
-
-        with open(f"meter_csv/{pk}.csv", 'w', newline='') as csv_file:
-            opened = csv.writer(csv_file)
-            opened.writerow(['DATE', 'VALUE'])
-            for key, value in sorted_dates:
-                opened.writerow([str(key), str(value)])
+            with open(f"meter_csv/{pk}.csv", 'w', newline='') as csv_file:
+                opened = csv.writer(csv_file)
+                opened.writerow(['DATE', 'VALUE'])
+                for key, value in sorted_dates:
+                    opened.writerow([str(key), str(value)])
+        except:
+            return False
         return True
 
     def file_checker(self, file):
-        if str(file.name)[:4] == '.csv':
-            return True
+        if str(file.name)[-4:] == '.csv':
+            if len(str(file.name)) >= 5:
+                return True
         return False
 
 
@@ -92,6 +97,11 @@ class IndexPage(View):
                 success = False
             request.session['success'] = success
         else:
+            if os.path.exists(f"meter_csv/{request.POST.get('delete_meter')}.csv"):
+                os.remove(f"meter_csv/{request.POST.get('delete_meter')}.csv")
+                meter = Meter.objects.get(pk=request.POST.get('delete_meter'))
+                meter.meter_csv_file = None
+                meter.save()
             meter = Meter.objects.get(pk=request.POST.get('delete_meter'))
             meter.delete()
         return redirect(request.path)
@@ -143,9 +153,12 @@ class MeterDetails(View, DataReadHelper):
 
             if file_path:
                 x_axis, y_axis, dates = self.get_ordered_value_and_key_from_existing_csv(file_path=file_path)
-
+            try:
                 last_reading_date = max(dates)
                 last_reading = dates[max(dates)]
+            except:
+                last_reading = 'null'
+                last_reading_date = 'null'
         except Meter.DoesNotExist:
             return Http404
         return render(request, 'meter/meter_details.html',
