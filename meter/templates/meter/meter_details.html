@@ -19,12 +19,16 @@
             <h5 class="col-6" style="font-size: 1.5em">Last reading:
                 {% if not meter.meter_csv_file %}
                     <strong>Not Given</strong>
+                {% else %}
+                    <strong>{{ last_reading }}</strong>
                 {% endif %}
             </h5>
             <h5 class="col-6" style="font-size: 1.5em">Last reading date:
                 {% if not meter.meter_csv_file %}
-                    <strong>Not Given</strong>
-                {% endif %}
+                <strong>Not Given</strong>
+                {% else %}
+                <strong>{% if last_reading_date.day < 10 %}0{% endif %}{{ last_reading_date.day }}/{% if last_reading_date.month < 10 %}0{% endif %}{{last_reading_date.month}}/{{last_reading_date.year }}</strong>
+                    {% endif %}
             </h5>
         </div>
     </div>
@@ -51,7 +55,54 @@
     <div class="card border-secondary mb-3 m-5" style="max-width: 100%;">
         {% if not meter.meter_csv_file %}
             <h3 class="m-5 text-center" style="font-size: 20em;">Not Given</h3>
+        {% else %}
+                <div id="chart_container" class="p-4"></div>
         {% endif %}
     </div>
 
+{% endblock %}
+{% block scripts %}
+    <script type="text/javascript">
+Highcharts.chart('chart_container', {
+
+    title: {
+        text: ''
+    },
+
+    yAxis: {
+        title: {
+            text: '{{ meter.unit }}'
+        }
+    },
+
+    xAxis: {
+        categories: [ {% for value in x_axis %}'{{ value }}'{% if not forloop.last %}, {% endif %}{% endfor %}]
+    },
+
+    plotOptions: {
+        series: {
+            label: {
+                connectorAllowed: false
+            },
+        }
+    },
+    legend: {
+        enabled: false
+    },
+
+    series: [{
+        name: '{{ meter.resource_type }} consumption',
+        data: {{ y_axis }}
+    }],
+
+    responsive: {
+        rules: [{
+            condition: {
+                maxWidth: 500
+            }
+        }]
+    }
+
+});
+    </script>
 {% endblock %}
