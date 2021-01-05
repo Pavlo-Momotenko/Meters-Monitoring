@@ -1,15 +1,45 @@
 import csv
 import datetime
 import operator
+from django.core.files import File
 
 from django.http import Http404
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.views import View
 
 from meter.models import Meter
 
 
 # Create your views here.
+
+class DataReadHelper:
+    def __init__(self, file_path, file=None):
+        self.file_path = file_path
+        self.file = file
+
+    def get_ordered_value_and_key_from_existing_csv(self):
+        dates = dict()
+        x_axis = list()
+        y_axis = list()
+        file_path = self.file_path
+
+        if file_path:
+            with open(file_path) as csv_file:
+                for row in csv.reader(csv_file):
+                    try:
+                        date = row[0].split('-')
+                        dates[datetime.date(year=int(date[0]), month=int(date[1]), day=int(date[2]))] = float(row[1])
+                    except:
+                        if row[1].isdigit():
+                            dates['null'] = float(row[1])
+
+            sorted_dates = sorted(dates.items(), key=operator.itemgetter(0))
+            for i in sorted_dates:
+                x_axis.append(('0' if len(str(i[0].day)) < 2 else '') + str(i[0].day) + '/' + (
+                    '0' if len(str(i[0].month)) < 2 else '') + str(i[0].month) + '/' + str(i[0].year))
+                y_axis.append(dates[i[0]])
+
+        return x_axis, y_axis, dates
 
 
 class IndexPage(View):
@@ -38,46 +68,39 @@ class MeterDetails(View):
             meter = Meter.objects.get(pk=pk)
             if meter.meter_csv_file:
                 file_path = str(meter.meter_csv_file)
+                # with open(file_path, 'r') as file:
+
                 print('yes', file_path)
             else:
                 meter.meter_csv_file = file
                 meter.save()
                 file_path = str(meter.meter_csv_file)
                 print('no', file_path)
-
-            dates = dict()
-            with open(file_path) as csv_file:
-                for row in csv.reader(csv_file):
-                    try:
-                        date = row[0].split('-')
-                        dates[datetime.date(year=int(date[0]), month=int(date[1]), day=int(date[2]))] = float(row[1])
-                    except:
-                        if row[1].isdigit():
-                            dates['null'] = float(row[1])
-                print(dates)
-            x_axis = list()
-            y_axis = list()
-            sorted_dates = sorted(dates.items(), key=operator.itemgetter(0))
-            print(sorted_dates)
-            for i in sorted_dates:
-                x_axis.append(str(i[0].day) + '/' + str(i[0].month) + '/' + str(i[0].year))
-                y_axis.append(dates[i[0]])
-
-            print(len(x_axis), len(y_axis))
-            print(x_axis, y_axis)
-            meter = Meter.objects.get(pk=pk)
         except Meter.DoesNotExist:
             return Http404
-        return render(request, 'meter/meter_details.html',
-                      {"meter": meter, 'pk': pk, 'last_reading_date': max(dates), 'last_reading': dates[max(dates)],
-                       'x_axis': x_axis, 'y_axis': y_axis})
+        return redirect(request.path)
 
     def get(self, request, pk):
         try:
             meter = Meter.objects.get(pk=pk)
+            file_path = str(meter.meter_csv_file)
+
+            last_reading_date = None
+            last_reading = None
+            x_axis = list()
+            y_axis = list()
+
+            if file_path:
+                helper = DataReadHelper(file_path=file_path)
+                x_axis, y_axis, dates = helper.get_ordered_value_and_key_from_existing_csv()
+
+                last_reading_date = max(dates)
+                last_reading = dates[max(dates)]
         except Meter.DoesNotExist:
             return Http404
-        return render(request, 'meter/meter_details.html', {"meter": meter, 'pk': pk})
+        return render(request, 'meter/meter_details.html',
+                      {"meter": meter, 'pk': pk, 'last_reading_date': last_reading_date, 'last_reading': last_reading,
+                       'x_axis': x_axis, 'y_axis': y_axis})
 
 
 class NewMeter(View):
