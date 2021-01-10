@@ -2,9 +2,6 @@ import csv
 import datetime
 import operator
 import os
-from pathlib import Path
-from django.core.files import File
-
 from django.http import Http404
 from django.shortcuts import render, redirect
 from django.views import View
@@ -15,33 +12,31 @@ from meter.models import Meter
 # Create your views here.
 
 class DataReadHelper:
-    def get_ordered_value_and_key_from_existing_csv(self, file_path):
+    def get_ordered_value_key_and_dates_dict_from_existing_csv(self, file_path):
         dates = dict()
         x_axis = list()
         y_axis = list()
-        try:
-            if file_path:
-                with open(file_path) as csv_file:
-                    for row in csv.reader(csv_file):
-                        try:
-                            date = row[0].split('-')
-                            dates[datetime.date(year=int(date[0]), month=int(date[1]), day=int(date[2]))] = float(row[1])
-                        except:
-                            if row[1].isdigit():
-                                dates['null'] = float(row[1])
+        if file_path:
+            with open(file_path) as csv_file:
+                for row in csv.reader(csv_file):
+                    try:
+                        date = row[0].split('-')
+                        dates[datetime.date(year=int(date[0]), month=int(date[1]), day=int(date[2]))] = float(
+                            row[1])
+                    except:
+                        if row[1].isdigit():
+                            dates['null'] = float(row[1])
 
-                sorted_dates = sorted(dates.items(), key=operator.itemgetter(0))
-                for i in sorted_dates:
-                    x_axis.append(('0' if len(str(i[0].day)) < 2 else '') + str(i[0].day) + '/' + (
-                        '0' if len(str(i[0].month)) < 2 else '') + str(i[0].month) + '/' + str(i[0].year))
-                    y_axis.append(dates[i[0]])
-        except:
-            return x_axis, y_axis, dates
+            sorted_dates = sorted(dates.items(), key=operator.itemgetter(0))
+            for i in sorted_dates:
+                x_axis.append(('0' if len(str(i[0].day)) < 2 else '') + str(i[0].day) + '/' + (
+                    '0' if len(str(i[0].month)) < 2 else '') + str(i[0].month) + '/' + str(i[0].year))
+                y_axis.append(dates[i[0]])
 
         return x_axis, y_axis, dates
 
-    def get_ordered_value_and_key_from_not_existing_csv(self, file_path, file, pk):
-        x_axis, y_axis, dates = self.get_ordered_value_and_key_from_existing_csv(file_path)
+    def get_ordered_value_key_and_dates_dict_from_not_existing_csv(self, file_path, file, pk):
+        x_axis, y_axis, dates = self.get_ordered_value_key_and_dates_dict_from_existing_csv(file_path)
         try:
             file_path = file.read().decode('utf-8')
 
@@ -77,7 +72,10 @@ class DataReadHelper:
             return False
         return True
 
-    def file_checker(self, file):
+    def get_x_axis_y_axis_data_from_sorted_dates(self, dates, x_axis, y_axis):
+        pass
+
+    def check_file_extention(self, file):
         if str(file.name)[-4:] == '.csv':
             if len(str(file.name)) >= 5:
                 return True
@@ -117,7 +115,6 @@ class IndexPage(View):
 
 class MeterDetails(View, DataReadHelper):
     def post(self, request, pk):
-        # print(Path(__file__).resolve().parent.parent)
         if request.POST.get('reset_meter'):
             if os.path.exists(f'meter_csv/{pk}.csv'):
                 os.remove(f'meter_csv/{pk}.csv')
@@ -125,20 +122,19 @@ class MeterDetails(View, DataReadHelper):
                 meter.meter_csv_file = None
                 meter.save()
         else:
-            try:
-                file = request.FILES.get('meter_file')
-                if self.file_checker(file):
-                    file.name = f"{pk}.csv"
-                    meter = Meter.objects.get(pk=pk)
-                    if meter.meter_csv_file:
-                        file_path = str(meter.meter_csv_file)
-                        self.get_ordered_value_and_key_from_not_existing_csv(file_path=file_path, file=file, pk=pk)
-                    else:
-                        meter.meter_csv_file = file
-                        meter.save()
-                        file_path = str(meter.meter_csv_file)
-            except Meter.DoesNotExist:
-                return Http404
+            file = request.FILES.get('meter_file')
+            if self.check_file_extention(file):
+                file.name = f"{pk}.csv"
+                meter = Meter.objects.get(pk=pk)
+                if meter.meter_csv_file:
+                    file_path = str(meter.meter_csv_file)
+                    self.get_ordered_value_key_and_dates_dict_from_not_existing_csv(file_path=file_path, file=file,
+                                                                                    pk=pk)
+                else:
+                    meter.meter_csv_file = file
+                    meter.save()
+                    file_path = str(meter.meter_csv_file)
+
         return redirect(request.path)
 
     def get(self, request, pk):
@@ -152,7 +148,7 @@ class MeterDetails(View, DataReadHelper):
             y_axis = list()
 
             if file_path:
-                x_axis, y_axis, dates = self.get_ordered_value_and_key_from_existing_csv(file_path=file_path)
+                x_axis, y_axis, dates = self.get_ordered_value_key_and_dates_dict_from_existing_csv(file_path=file_path)
             try:
                 last_reading_date = max(dates)
                 last_reading = dates[max(dates)]
