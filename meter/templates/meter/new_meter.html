@@ -14,30 +14,25 @@
 
     <form action="{% url "index" %}" method="post" enctype="multipart/form-data">
         {% csrf_token %}
-
         <div class="input-group col-9 m-5" style="width: 50%">
             <span class="input-group-text">Meter Name</span>
-            <input type="text" aria-label="Meter name" class="form-control" name="meter_name" required minlength="3"
-                   maxlength="60">
+            {{ new_meter_form.name }}
         </div>
 
         <div class="input-group mb-3 m-5" style="width: 50%">
             <span class="input-group-text">Resource</span>
-            <select class="form-select" aria-label="Resource type" name="meter_resource" required>
-                <option selected value="Electricity">Electricity</option>
-                <option value="Water">Water</option>
-                <option value="Gas">Gas</option>
-            </select>
+            {{ new_meter_form.resource }}
         </div>
 
         <div class="input-group col-9 m-5" style="width: 50%">
             <span class="input-group-text">Unit</span>
-            <input type="text" aria-label="Unit" class="form-control" name="meter_unit" required maxlength="20">
+            {{ new_meter_form.unit }}
         </div>
 
         <a href="{% url "index" %}" class="btn btn-secondary float-lg-start m-5">Cancel</a>
-        <button class="btn btn-success float-lg-start m-5" id="meter_submit" type="submit" name="create_meter_button" value="1">Create
-            Meter
+
+        <button class="btn btn-success float-lg-start m-5" id="meter_submit" type="submit" name="create_meter_button">
+            Create Meter
         </button>
     </form>
 {% endblock %}

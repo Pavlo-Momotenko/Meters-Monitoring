@@ -5,7 +5,7 @@ import os
 from django.http import Http404
 from django.shortcuts import render, redirect
 from django.views import View
-
+from meter.forms import CreateMeterForm
 from meter.models import Meter
 
 
@@ -84,16 +84,14 @@ class DataReadHelper:
 
 class IndexPage(View):
     def post(self, request):
-        if request.POST.get('create_meter_button'):
-            try:
-                meter_name = request.POST.get('meter_name')
-                meter_resource = request.POST.get('meter_resource')
-                meter_unit = request.POST.get('meter_unit')
-                new_meter = Meter.objects.create(name=meter_name, resource_type=meter_resource, unit=meter_unit)
-                success = True
-            except:
-                success = False
-            request.session['success'] = success
+        new_meter_form = CreateMeterForm(request.POST)
+        print(new_meter_form)
+        if new_meter_form.is_valid():
+            data = new_meter_form.cleaned_data
+            is_name_in_database = Meter.objects.filter(name=data['name']).count()
+            if not is_name_in_database:
+                new_meter = Meter.objects.create(name=data['name'], resource_type=data['resource'], unit=data['unit'])
+            request.session['success'] = False if is_name_in_database else True
         else:
             if os.path.exists(f"meter_csv/{request.POST.get('delete_meter')}.csv"):
                 os.remove(f"meter_csv/{request.POST.get('delete_meter')}.csv")
@@ -164,4 +162,5 @@ class MeterDetails(View, DataReadHelper):
 
 class NewMeter(View):
     def get(self, request):
-        return render(request, 'meter/new_meter.html', {})
+        new_meter_form = CreateMeterForm()
+        return render(request, 'meter/new_meter.html', {'new_meter_form': new_meter_form})
