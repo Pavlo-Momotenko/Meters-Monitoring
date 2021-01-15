@@ -90,20 +90,23 @@ class IndexPage(View):
         if new_meter_form.is_valid():
             data = new_meter_form.cleaned_data
             is_name_in_database = meters.filter(name=data['name']).count()
+
             if not is_name_in_database:
                 meters.create(name=data['name'], resource_type=data['resource'], unit=data['unit'])
+
             request.session['success'] = False if is_name_in_database else True
 
         if request.POST.get('delete_meter'):
+            primary_key = int(request.POST.get('delete_meter'))
+            is_pk_in_database = meters.filter(pk=primary_key)
 
-            if os.path.exists(f"meter_csv/{request.POST.get('delete_meter')}.csv"):
-                os.remove(f"meter_csv/{request.POST.get('delete_meter')}.csv")
-                meter = Meter.objects.get(pk=request.POST.get('delete_meter'))
-                meter.meter_csv_file = None
-                meter.save()
+            if os.path.exists(f"meter_csv/{primary_key}.csv"):
+                os.remove(f"meter_csv/{primary_key}.csv")
+                meters.get(pk=primary_key).meter_csv_file = None
+                meters.save()
 
-            meter = Meter.objects.get(pk=request.POST.get('delete_meter'))
-            meter.delete()
+            if is_pk_in_database:
+                meters.get(pk=primary_key).delete()
 
         return redirect(request.path)
 
