@@ -2,10 +2,12 @@ import csv
 import datetime
 import operator
 import os
+
 from django.http import Http404
 from django.shortcuts import render, redirect
 from django.views import View
-from meter.forms import CreateMeterForm
+
+from meter.forms import CreateMeterForm, DataFileUploadForm
 from meter.models import Meter
 
 
@@ -81,9 +83,40 @@ class DataReadHelper:
                 return True
         return False
 
+    @staticmethod
+    def get_x_y_axis_data_dict():
+        pass
+
+    @staticmethod
+    def get_data_for_page(file_path):
+        x_y_axis_data, last_reading_date, last_reading = dict(), None, None
+
+        if os.path.exists(str(file_path)):
+            with open(str(file_path), 'r', encoding='utf-8') as csv_file:
+                reader = csv.DictReader(csv_file)
+                for date_row in reader:
+                    if 'DATE' in date_row and 'VALUE' in date_row:
+                        if date_row['DATE'] and date_row['VALUE']:
+                            print('everything is given')
+                            x_y_axis_data[datetime.datetime.strptime(date_row['DATE'], '%Y-%m-%d')] = date_row['VALUE']
+                        elif date_row['DATE'] and not date_row['VALUE']:
+                            print('given only date')
+                            x_y_axis_data[datetime.datetime.strptime(date_row['DATE'], '%Y-%m-%d')] = 'null'
+                    else:
+                        break
+
+            if len(x_y_axis_data) > 0:
+                x_y_axis_data = dict(sorted(x_y_axis_data.items()))
+                last_reading_date = max(x_y_axis_data)
+                last_reading = round(float(x_y_axis_data[last_reading_date]), 1) if x_y_axis_data[last_reading_date] != 'null' else 'null'
+
+        print(x_y_axis_data, last_reading_date, last_reading)
+        return x_y_axis_data, last_reading_date, last_reading
+
 
 class IndexPage(View):
-    def post(self, request):
+    @staticmethod
+    def post(request):
         new_meter_form = CreateMeterForm(request.POST)
         meters = Meter.objects
 
@@ -110,17 +143,21 @@ class IndexPage(View):
 
         return redirect(request.path)
 
-    def get(self, request):
+    @staticmethod
+    def get(request):
         success = request.session.get('success', None)
-        if success in [True, False]:
+        all_meters = Meter.objects.all()
+
+        if success is not None:
             del (request.session['success'])
 
-        meters = Meter.objects.all().order_by('pk')
-        return render(request, 'meter/index.html', {"meters": meters, "success": success})
+        return render(request, 'meter/index.html', {"meters": all_meters, "success": success})
 
 
 class MeterDetails(View, DataReadHelper):
     def post(self, request, pk):
+        file_upload_form = DataFileUploadForm(request.POST)
+
         if request.POST.get('reset_meter'):
             if os.path.exists(f'meter_csv/{pk}.csv'):
                 os.remove(f'meter_csv/{pk}.csv')
@@ -144,6 +181,22 @@ class MeterDetails(View, DataReadHelper):
         return redirect(request.path)
 
     def get(self, request, pk):
+        file_upload_form = DataFileUploadForm()
+
+        meters = Meter.objects
+        is_pk_in_database = meters.filter(pk=pk)
+
+        if is_pk_in_database:
+
+            meter_file_path = meters.get(pk=pk).meter_csv_file or None
+
+            if meter_file_path:
+                x_y_axis_data, last_reading_date, last_reading = self.get_data_for_page(meter_file_path)
+
+        else:
+            raise Http404
+
+
         try:
             meter = Meter.objects.get(pk=pk)
             file_path = str(meter.meter_csv_file)
@@ -163,12 +216,15 @@ class MeterDetails(View, DataReadHelper):
                 last_reading_date = 'null'
         except Meter.DoesNotExist:
             return Http404
+
+
         return render(request, 'meter/meter_details.html',
                       {"meter": meter, 'pk': pk, 'last_reading_date': last_reading_date, 'last_reading': last_reading,
-                       'x_axis': x_axis, 'y_axis': y_axis})
+                       'x_axis': x_axis, 'y_axis': y_axis, 'file_upload_form': file_upload_form})
 
 
 class NewMeter(View):
-    def get(self, request):
+    @staticmethod
+    def get(request):
         new_meter_form = CreateMeterForm()
         return render(request, 'meter/new_meter.html', {'new_meter_form': new_meter_form})

@@ -17,18 +17,18 @@
             <h5 class="col-6" style="font-size: 1.5em">Resource: <strong>{{ meter.resource_type }}</strong></h5>
             <h5 class="col-6" style="font-size: 1.5em">Unit: <strong>{{ meter.unit }}</strong></h5>
             <h5 class="col-6" style="font-size: 1.5em">Last reading:
-                {% if not meter.meter_csv_file %}
-                    <strong>Not Given</strong>
-                {% else %}
+                {% if meter.meter_csv_file %}
                     <strong>{{ last_reading }}</strong>
+                {% else %}
+                    <strong>Not Given</strong>
                 {% endif %}
             </h5>
             <h5 class="col-6" style="font-size: 1.5em">Last reading date:
-                {% if not meter.meter_csv_file %}
-                <strong>Not Given</strong>
+                {% if meter.meter_csv_file %}
+                    <strong>{% if last_reading_date.day < 10 %}0{% endif %}{{ last_reading_date.day }}/{% if last_reading_date.month < 10 %}0{% endif %}{{ last_reading_date.month }}/{{ last_reading_date.year }}</strong>
                 {% else %}
-                <strong>{% if last_reading_date.day < 10 %}0{% endif %}{{ last_reading_date.day }}/{% if last_reading_date.month < 10 %}0{% endif %}{{last_reading_date.month}}/{{last_reading_date.year }}</strong>
-                    {% endif %}
+                    <strong>Not Given</strong>
+                {% endif %}
             </h5>
         </div>
     </div>
@@ -39,76 +39,79 @@
         <div class="card-body text-dark m-2 row">
             <form action="{% url 'meter_details' pk %}" method="post" enctype="multipart/form-data" class="col-10 row">
                 {% csrf_token %}
-
                 <div class="col-6">
-                    <input type="file" class=" form-control" id="inputGroupFile01"
-                           aria-describedby="inputGroupFileAddon01"
-                           aria-label="Upload" name="meter_file" required>
+                    {{ file_upload_form.file }}
                 </div>
+
                 <div class="col-4"></div>
+
                 <button type="submit" class="btn btn-success col-2">Upload</button>
             </form>
+
             <form action="{% url 'meter_details' pk %}" method="post" enctype="multipart/form-data" class="col-2 row">
                 {% csrf_token %}
                 <div class="col-1"></div>
-                <button type="submit" class="btn btn-danger col-10" name="reset_meter" value="1">Reset</button>
+
+                <button type="submit" class="btn btn-danger col-10" name="reset_meter" value="reset">Reset</button>
+
                 <div class="col-1"></div>
             </form>
-    </div>
+        </div>
     </div>
 
     <p class="h2 text-start m-5">Meter Consumptions</p>
+
     <div class="card border-secondary mb-3 m-5" style="max-width: 100%;">
-        {% if not meter.meter_csv_file %}
-            <h3 class="m-5 text-center" style="font-size: 20em;">Not Given</h3>
+        {% if meter.meter_csv_file %}
+            <div id="chart_container" class="p-4"></div>
         {% else %}
-                <div id="chart_container" class="p-4"></div>
+            <h3 class="m-5 text-center" style="font-size: 20em;">Not Given</h3>
         {% endif %}
     </div>
-
 {% endblock %}
+
 {% block scripts %}
     <script type="text/javascript">
-Highcharts.chart('chart_container', {
+        Highcharts.chart('chart_container', {
 
-    title: {
-        text: ''
-    },
-
-    yAxis: {
-        title: {
-            text: '{{ meter.unit }}'
-        }
-    },
-
-    xAxis: {
-        categories: [ {% for value in x_axis %}'{{ value }}'{% if not forloop.last %}, {% endif %}{% endfor %}]
-    },
-
-    plotOptions: {
-        series: {
-            label: {
-                connectorAllowed: false
+            title: {
+                text: ''
             },
-        }
-    },
-    legend: {
-        enabled: false
-    },
 
-    series: [{
-        name: '{{ meter.resource_type }} consumption',
-        data: {{ y_axis }}
-    }],
+            yAxis: {
+                title: {
+                    text: '{{ meter.unit }}'
+                }
+            },
 
-    responsive: {
-        rules: [{
-            condition: {
-                maxWidth: 500
+            xAxis: {
+                categories: [{% for value in x_axis %}'{{ value }}'{% if not forloop.last %}, {% endif %}{% endfor %}]
+            },
+
+            plotOptions: {
+                series: {
+                    label: {
+                        connectorAllowed: false
+                    },
+                }
+            },
+            legend: {
+                enabled: false
+            },
+
+            series: [{
+                name: '{{ meter.resource_type }} consumption',
+                data: {{ y_axis }}
+            }],
+
+            responsive: {
+                rules: [{
+                    condition: {
+                        maxWidth: 500
+                    }
+                }]
             }
-        }]
-    }
 
-});
+        });
     </script>
 {% endblock %}
