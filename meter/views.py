@@ -85,21 +85,26 @@ class DataReadHelper:
 class IndexPage(View):
     def post(self, request):
         new_meter_form = CreateMeterForm(request.POST)
-        print(new_meter_form)
+        meters = Meter.objects
+
         if new_meter_form.is_valid():
             data = new_meter_form.cleaned_data
-            is_name_in_database = Meter.objects.filter(name=data['name']).count()
+            is_name_in_database = meters.filter(name=data['name']).count()
             if not is_name_in_database:
-                new_meter = Meter.objects.create(name=data['name'], resource_type=data['resource'], unit=data['unit'])
+                meters.create(name=data['name'], resource_type=data['resource'], unit=data['unit'])
             request.session['success'] = False if is_name_in_database else True
-        else:
+
+        if request.POST.get('delete_meter'):
+
             if os.path.exists(f"meter_csv/{request.POST.get('delete_meter')}.csv"):
                 os.remove(f"meter_csv/{request.POST.get('delete_meter')}.csv")
                 meter = Meter.objects.get(pk=request.POST.get('delete_meter'))
                 meter.meter_csv_file = None
                 meter.save()
+
             meter = Meter.objects.get(pk=request.POST.get('delete_meter'))
             meter.delete()
+
         return redirect(request.path)
 
     def get(self, request):
