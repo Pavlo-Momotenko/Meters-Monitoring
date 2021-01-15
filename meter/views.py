@@ -110,7 +110,7 @@ class DataReadHelper:
                 last_reading_date = max(x_y_axis_data)
                 last_reading = round(float(x_y_axis_data[last_reading_date]), 1) if x_y_axis_data[last_reading_date] != 'null' else 'null'
 
-        print(x_y_axis_data, last_reading_date, last_reading)
+        # print(x_y_axis_data, last_reading_date, last_reading)
         return x_y_axis_data, last_reading_date, last_reading
 
 
