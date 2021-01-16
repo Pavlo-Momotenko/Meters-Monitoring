@@ -55,6 +55,8 @@ class DataReadHelper:
 
         return x_y_axis_data
 
+    @staticmethod
+    def
     def post_data_for_page(self, file, file_path):
         reader = csv.DictReader(file.read().decode('utf-8').splitlines())
         sorted_data_in_existed_meter = dict()
