@@ -22,7 +22,7 @@ class ViewTest(TestCase):
         models.Meter.objects.create(name='Second', unit='two')
 
     def test_new_meter_view(self):
-        response = self.client.get('/new_meter/')
+        response = self.client.get('/new_meter')
         self.assertEqual(response.status_code, 200)
 
     def test_index_accessible_by_name(self):
@@ -30,5 +30,5 @@ class ViewTest(TestCase):
         self.assertEqual(response.status_code, 200)
 
     def test_list_meters(self):
-        response = self.client.get('/meter/2/')
+        response = self.client.get('/home')
         self.assertEqual(response.status_code, 200)
