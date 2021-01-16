@@ -36,7 +36,20 @@
     <p class="h2 text-start m-5">Upload Readings</p>
 
     <div class="card border-secondary mb-3 m-5" style="max-width: 100%;">
-        <div class="card-body text-dark m-2 row">
+        <div class="card-body text-dark row">
+
+            <div class="row">
+                {% if file_upload_form.errors %}
+                    <div class="alert alert-danger" role="alert" style="margin-bottom: 1em; margin-left: .7em; padding-bottom: .1em;">
+                        <ul style="list-style-type: '\1F4CC'">
+                            {% for error in file_upload_form.file.errors %}
+                                <li>{{ error }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                {% endif %}
+            </div>
+
             <form action="{% url 'meter_details' pk %}" method="post" enctype="multipart/form-data" class="col-10 row">
                 {% csrf_token %}
                 <div class="col-6">
@@ -50,11 +63,9 @@
 
             <form action="{% url 'meter_details' pk %}" method="post" enctype="multipart/form-data" class="col-2 row">
                 {% csrf_token %}
-                <div class="col-1"></div>
+                <div class="col-2"></div>
 
                 <button type="submit" class="btn btn-danger col-10" name="reset_meter" value="reset">Reset</button>
-
-                <div class="col-1"></div>
             </form>
         </div>
     </div>

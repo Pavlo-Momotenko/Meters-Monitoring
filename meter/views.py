@@ -94,13 +94,13 @@ class DataReadHelper:
         if os.path.exists(str(file_path)):
             with open(str(file_path), 'r', encoding='utf-8') as csv_file:
                 reader = csv.DictReader(csv_file)
-                for date_row in reader:
-                    if 'DATE' in date_row and 'VALUE' in date_row:
-                        if date_row['DATE'] and date_row['VALUE']:
+                for data_row in reader:
+                    if 'DATE' in data_row and 'VALUE' in data_row:
+                        if data_row['DATE'] and data_row['VALUE']:
                             # print('everything is given')
 
-                            x_y_axis_data[datetime.datetime.strptime(date_row['DATE'], '%Y-%m-%d')] = round(
-                                float(date_row['VALUE']), 1)
+                            x_y_axis_data[datetime.datetime.strptime(data_row['DATE'], '%Y-%m-%d')] = round(
+                                float(data_row['VALUE']), 1)
 
                         # elif date_row['DATE'] and not date_row['VALUE']:
                         #     print('given only date')
@@ -159,7 +159,8 @@ class IndexPage(View):
 
 class MeterDetails(View, DataReadHelper):
     def post(self, request, pk):
-        file_upload_form = DataFileUploadForm(request.POST)
+        file_upload_form = DataFileUploadForm(request.POST, request.FILES)
+        print(file_upload_form)
 
         meters = Meter.objects
         is_pk_in_database = meters.filter(pk=pk)
@@ -174,18 +175,37 @@ class MeterDetails(View, DataReadHelper):
             return redirect(request.path)
 
         if file_upload_form.is_valid():
-            file = request.FILES.get('meter_file')
-            if self.check_file_extention(file):
+            file = file_upload_form.cleaned_data['file']
+
+            if file.name[-4:] == '.csv':
                 file.name = f"{pk}.csv"
-                meter = Meter.objects.get(pk=pk)
-                if meter.meter_csv_file:
-                    file_path = str(meter.meter_csv_file)
-                    self.get_ordered_value_key_and_dates_dict_from_not_existing_csv(file_path=file_path, file=file,
-                                                                                    pk=pk)
+            else:
+                file_upload_form.add_error('file', 'File extension is incorrect, it must be *.csv!')
+                return render(request, 'meter/meter_details.html', context={'pk': pk, 'file_upload_form': file_upload_form})
+
+
+            print(file)
+            if is_pk_in_database:
+                if meters.get(pk=pk).meter_csv_file:
+                    pass
                 else:
-                    meter.meter_csv_file = file
-                    meter.save()
-                    file_path = str(meter.meter_csv_file)
+                    meters.get(pk=pk).meter_csv_file = file.name
+        else:
+            return render(request, 'meter/meter_details.html', context={'pk': pk, 'file_upload_form': file_upload_form})
+
+
+            # file = request.FILES.get('meter_file')
+            # if self.check_file_extention(file):
+            #     file.name = f"{pk}.csv"
+            #     meter = Meter.objects.get(pk=pk)
+            #     if meter.meter_csv_file:
+            #         file_path = str(meter.meter_csv_file)
+            #         self.get_ordered_value_key_and_dates_dict_from_not_existing_csv(file_path=file_path, file=file,
+            #                                                                         pk=pk)
+            #     else:
+            #         meter.meter_csv_file = file
+            #         meter.save()
+            #         file_path = str(meter.meter_csv_file)
 
         return redirect(request.path)
 

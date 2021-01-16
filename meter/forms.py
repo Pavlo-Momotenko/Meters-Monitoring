@@ -17,5 +17,5 @@ class CreateMeterForm(forms.Form):
 
 class DataFileUploadForm(forms.Form):
     file = forms.FileField(required=True, allow_empty_file=False,  widget=forms.FileInput(
-        attrs={'class': 'form-control', 'id': 'inputGroupFile01', 'aria-describedby': 'inputGroupFileAddon01',
+        attrs={'class': 'form-control', 'aria-describedby': 'inputGroupFileAddon01',
                'aria-label': 'Upload'}))
