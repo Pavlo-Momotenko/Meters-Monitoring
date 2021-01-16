@@ -139,8 +139,7 @@ class IndexPage(View):
 
             if os.path.exists(f"meter_csv/{primary_key}.csv"):
                 os.remove(f"meter_csv/{primary_key}.csv")
-                meters.get(pk=primary_key).meter_csv_file = None
-                meters.save()
+                meters.get(pk=primary_key).meter_csv_file.delete()
 
             if is_pk_in_database:
                 meters.get(pk=primary_key).delete()
@@ -162,13 +161,19 @@ class MeterDetails(View, DataReadHelper):
     def post(self, request, pk):
         file_upload_form = DataFileUploadForm(request.POST)
 
+        meters = Meter.objects
+        is_pk_in_database = meters.filter(pk=pk)
+
         if request.POST.get('reset_meter'):
             if os.path.exists(f'meter_csv/{pk}.csv'):
                 os.remove(f'meter_csv/{pk}.csv')
-                meter = Meter.objects.get(pk=pk)
-                meter.meter_csv_file = None
-                meter.save()
-        else:
+
+            if is_pk_in_database:
+                meters.get(pk=pk).meter_csv_file.delete()
+
+            return redirect(request.path)
+
+        if file_upload_form.is_valid():
             file = request.FILES.get('meter_file')
             if self.check_file_extention(file):
                 file.name = f"{pk}.csv"
