@@ -97,18 +97,22 @@ class DataReadHelper:
                 for date_row in reader:
                     if 'DATE' in date_row and 'VALUE' in date_row:
                         if date_row['DATE'] and date_row['VALUE']:
-                            print('everything is given')
-                            x_y_axis_data[datetime.datetime.strptime(date_row['DATE'], '%Y-%m-%d')] = date_row['VALUE']
-                        elif date_row['DATE'] and not date_row['VALUE']:
-                            print('given only date')
-                            x_y_axis_data[datetime.datetime.strptime(date_row['DATE'], '%Y-%m-%d')] = 'null'
+                            # print('everything is given')
+
+                            x_y_axis_data[datetime.datetime.strptime(date_row['DATE'], '%Y-%m-%d')] = round(
+                                float(date_row['VALUE']), 1)
+
+                        # elif date_row['DATE'] and not date_row['VALUE']:
+                        #     print('given only date')
+                        #     x_y_axis_data[datetime.datetime.strptime(date_row['DATE'], '%Y-%m-%d')] = 'null'
                     else:
                         break
 
             if len(x_y_axis_data) > 0:
                 x_y_axis_data = dict(sorted(x_y_axis_data.items()))
                 last_reading_date = max(x_y_axis_data)
-                last_reading = round(float(x_y_axis_data[last_reading_date]), 1) if x_y_axis_data[last_reading_date] != 'null' else 'null'
+                last_reading = x_y_axis_data[
+                    last_reading_date]  # if x_y_axis_data[last_reading_date] != 'null' else 'null'
 
         # print(x_y_axis_data, last_reading_date, last_reading)
         return x_y_axis_data, last_reading_date, last_reading
@@ -186,6 +190,9 @@ class MeterDetails(View, DataReadHelper):
         meters = Meter.objects
         is_pk_in_database = meters.filter(pk=pk)
 
+        last_reading_date, last_reading = None, None
+        x_y_axis_data = dict()
+
         if is_pk_in_database:
 
             meter_file_path = meters.get(pk=pk).meter_csv_file or None
@@ -196,31 +203,10 @@ class MeterDetails(View, DataReadHelper):
         else:
             raise Http404
 
-
-        try:
-            meter = Meter.objects.get(pk=pk)
-            file_path = str(meter.meter_csv_file)
-
-            last_reading_date = None
-            last_reading = None
-            x_axis = list()
-            y_axis = list()
-
-            if file_path:
-                x_axis, y_axis, dates = self.get_ordered_value_key_and_dates_dict_from_existing_csv(file_path=file_path)
-            try:
-                last_reading_date = max(dates)
-                last_reading = dates[max(dates)]
-            except:
-                last_reading = 'null'
-                last_reading_date = 'null'
-        except Meter.DoesNotExist:
-            return Http404
-
-
         return render(request, 'meter/meter_details.html',
-                      {"meter": meter, 'pk': pk, 'last_reading_date': last_reading_date, 'last_reading': last_reading,
-                       'x_axis': x_axis, 'y_axis': y_axis, 'file_upload_form': file_upload_form})
+                      {"meter": meters.get(pk=pk), 'pk': pk, 'last_reading_date': last_reading_date,
+                       'last_reading': last_reading, 'x_axis': list(x_y_axis_data.keys()),
+                       'y_axis': list(x_y_axis_data.values()), 'file_upload_form': file_upload_form})
 
 
 class NewMeter(View):

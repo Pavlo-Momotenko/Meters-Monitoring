@@ -85,7 +85,7 @@
             },
 
             xAxis: {
-                categories: [{% for value in x_axis %}'{{ value }}'{% if not forloop.last %}, {% endif %}{% endfor %}]
+                categories: [{% for value in x_axis %}'{% if value.day < 10 %}0{% endif %}{{ value.day }}/{% if value.month < 10 %}0{% endif %}{{ value.month }}/{{ value.year }}'{% if not forloop.last %}, {% endif %}{% endfor %}]
             },
 
             plotOptions: {
