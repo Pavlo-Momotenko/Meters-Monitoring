@@ -84,7 +84,7 @@ class DataReadHelper:
         return False
 
     @staticmethod
-    def get_x_y_axis_data_dict():
+    def post_data_for_page(file_path):
         pass
 
     @staticmethod

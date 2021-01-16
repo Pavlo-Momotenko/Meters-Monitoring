@@ -20,7 +20,8 @@ from meter import views
 
 urlpatterns = [
     path('', views.IndexPage.as_view(), name='index'),
-    path('new_meter/', views.NewMeter.as_view(), name='new_meter'),
+    path('home', views.IndexPage.as_view(), name='index'),
+    path('new_meter', views.NewMeter.as_view(), name='new_meter'),
     path('meter/<pk>', views.MeterDetails.as_view(), name='meter_details'),
-    path('admin/', admin.site.urls),
+    path('admin', admin.site.urls),
 ]
