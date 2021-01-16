@@ -39,10 +39,10 @@
         <div class="card-body text-dark row">
 
             <div class="row">
-                {% if file_upload_form.errors %}
+                {% if errors %}
                     <div class="alert alert-danger" role="alert" style="margin-bottom: 1em; margin-left: .7em; padding-bottom: .1em;">
                         <ul style="list-style-type: '\1F4CC'">
-                            {% for error in file_upload_form.file.errors %}
+                            {% for error in errors %}
                                 <li>{{ error }}</li>
                             {% endfor %}
                         </ul>
@@ -76,7 +76,7 @@
         {% if meter.meter_csv_file %}
             <div id="chart_container" class="p-4"></div>
         {% else %}
-            <h3 class="m-5 text-center" style="font-size: 20em;">Not Given</h3>
+            <h3 class="m-5 text-center" style="font-size: 18em">Not Given</h3>
         {% endif %}
     </div>
 {% endblock %}

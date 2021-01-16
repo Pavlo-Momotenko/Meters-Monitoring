@@ -14,107 +14,71 @@ from meter.models import Meter
 # Create your views here.
 
 class DataReadHelper:
-    def get_ordered_value_key_and_dates_dict_from_existing_csv(self, file_path):
-        dates = dict()
-        x_axis = list()
-        y_axis = list()
-        if file_path:
-            with open(file_path) as csv_file:
-                for row in csv.reader(csv_file):
-                    try:
-                        date = row[0].split('-')
-                        dates[datetime.date(year=int(date[0]), month=int(date[1]), day=int(date[2]))] = float(
-                            row[1])
-                    except:
-                        if row[1].isdigit():
-                            dates['null'] = float(row[1])
-
-            sorted_dates = sorted(dates.items(), key=operator.itemgetter(0))
-            for i in sorted_dates:
-                x_axis.append(('0' if len(str(i[0].day)) < 2 else '') + str(i[0].day) + '/' + (
-                    '0' if len(str(i[0].month)) < 2 else '') + str(i[0].month) + '/' + str(i[0].year))
-                y_axis.append(dates[i[0]])
-
-        return x_axis, y_axis, dates
-
-    def get_ordered_value_key_and_dates_dict_from_not_existing_csv(self, file_path, file, pk):
-        x_axis, y_axis, dates = self.get_ordered_value_key_and_dates_dict_from_existing_csv(file_path)
-        try:
-            file_path = file.read().decode('utf-8')
-
-            dates_new = dict()
-            x_axis_new = list()
-            y_axis_new = list()
-
-            for row in file_path.split('\r\n'):
-                if row:
-                    date, value = row.split(',')
-                try:
-                    date = date.split('-')
-                    dates_new[datetime.date(year=int(date[0]), month=int(date[1]), day=int(date[2]))] = float(value)
-                except:
-                    if value.isdigit():
-                        dates_new['null'] = float(value)
-
-            for key in dates_new:
-                dates[key] = dates_new[key]
-
-            sorted_dates = sorted(dates.items(), key=operator.itemgetter(0))
-            for i in sorted_dates:
-                x_axis_new.append(('0' if len(str(i[0].day)) < 2 else '') + str(i[0].day) + '/' + (
-                    '0' if len(str(i[0].month)) < 2 else '') + str(i[0].month) + '/' + str(i[0].year))
-                y_axis_new.append(dates[i[0]])
-
-            with open(f"meter_csv/{pk}.csv", 'w', newline='') as csv_file:
-                opened = csv.writer(csv_file)
-                opened.writerow(['DATE', 'VALUE'])
-                for key, value in sorted_dates:
-                    opened.writerow([str(key), str(value)])
-        except:
-            return False
-        return True
-
-    def get_x_axis_y_axis_data_from_sorted_dates(self, dates, x_axis, y_axis):
-        pass
-
-    def check_file_extention(self, file):
-        if str(file.name)[-4:] == '.csv':
-            if len(str(file.name)) >= 5:
-                return True
-        return False
+    @staticmethod
+    def get_date_from_string(date):
+        return datetime.datetime.strptime(date, '%Y-%m-%d')
 
     @staticmethod
-    def post_data_for_page(file_path):
-        pass
+    def write_new_file_from_dictionary(file_path, dictionary):
+        with open(str(file_path), 'w', newline='') as new_csv_file:
+            field_names = ['DATE', 'VALUE']
+            writer = csv.DictWriter(new_csv_file, field_names)
+            writer.writeheader()
+
+            for date, value in dictionary.items():
+                writer.writerow({field_names[0]: date.strftime('%Y-%m-%d'), field_names[1]: value})
+
+    def get_formatted_dict(self, dictionary):
+        formatted_dict = dict()
+
+        for data_row in dictionary:
+            if 'DATE' in data_row and 'VALUE' in data_row:
+                if data_row['DATE'] and data_row['VALUE']:
+                    #ЗАПИЛИТЬ ТРАЙ ЕКСЕПТ
+                    formatted_dict[self.get_date_from_string(data_row['DATE'])] = round(float(data_row['VALUE']), 1)
+            else:
+                break
+
+        return formatted_dict
 
     @staticmethod
-    def get_data_for_page(file_path):
-        x_y_axis_data, last_reading_date, last_reading = dict(), None, None
+    def get_sorted_dictionary(dictionary):
+        return dict(sorted(dictionary.items()))
+
+    def get_data_from_file(self, file_path):
+        x_y_axis_data = dict()
 
         if os.path.exists(str(file_path)):
             with open(str(file_path), 'r', encoding='utf-8') as csv_file:
                 reader = csv.DictReader(csv_file)
-                for data_row in reader:
-                    if 'DATE' in data_row and 'VALUE' in data_row:
-                        if data_row['DATE'] and data_row['VALUE']:
-                            # print('everything is given')
+                x_y_axis_data = self.get_formatted_dict(reader)
 
-                            x_y_axis_data[datetime.datetime.strptime(data_row['DATE'], '%Y-%m-%d')] = round(
-                                float(data_row['VALUE']), 1)
+        return x_y_axis_data
 
-                        # elif date_row['DATE'] and not date_row['VALUE']:
-                        #     print('given only date')
-                        #     x_y_axis_data[datetime.datetime.strptime(date_row['DATE'], '%Y-%m-%d')] = 'null'
-                    else:
-                        break
+    def post_data_for_page(self, file, file_path):
+        reader = csv.DictReader(file.read().decode('utf-8').splitlines())
+        sorted_data_in_existed_meter = dict()
 
-            if len(x_y_axis_data) > 0:
-                x_y_axis_data = dict(sorted(x_y_axis_data.items()))
-                last_reading_date = max(x_y_axis_data)
-                last_reading = x_y_axis_data[
-                    last_reading_date]  # if x_y_axis_data[last_reading_date] != 'null' else 'null'
+        if os.path.exists(str(file_path)):
+            sorted_data_in_existed_meter = self.get_data_from_file(file_path)
 
-        # print(x_y_axis_data, last_reading_date, last_reading)
+        new_data_for_existed_meter = self.get_formatted_dict(reader)
+
+        new_data = dict()
+        new_data.update(sorted_data_in_existed_meter)
+        new_data.update(new_data_for_existed_meter)
+
+        self.write_new_file_from_dictionary(file_path, new_data)
+
+    def get_data_for_page(self, file_path):
+        x_y_axis_data, last_reading_date, last_reading = dict(), None, None
+        x_y_axis_data = self.get_data_from_file(file_path)
+
+        if len(x_y_axis_data) > 0:
+            x_y_axis_data = self.get_sorted_dictionary(x_y_axis_data)
+            last_reading_date = max(x_y_axis_data)
+            last_reading = x_y_axis_data[last_reading_date]
+
         return x_y_axis_data, last_reading_date, last_reading
 
 
@@ -160,7 +124,6 @@ class IndexPage(View):
 class MeterDetails(View, DataReadHelper):
     def post(self, request, pk):
         file_upload_form = DataFileUploadForm(request.POST, request.FILES)
-        print(file_upload_form)
 
         meters = Meter.objects
         is_pk_in_database = meters.filter(pk=pk)
@@ -180,36 +143,27 @@ class MeterDetails(View, DataReadHelper):
             if file.name[-4:] == '.csv':
                 file.name = f"{pk}.csv"
             else:
-                file_upload_form.add_error('file', 'File extension is incorrect, it must be *.csv!')
-                return render(request, 'meter/meter_details.html', context={'pk': pk, 'file_upload_form': file_upload_form})
+                file_upload_form.add_error('file', 'File extension is incorrect, it must have .csv extension!')
+                request.session['file_upload_form'] = file_upload_form.errors.as_text().split('*')[2:]
+                return redirect(request.path)
 
-
-            print(file)
             if is_pk_in_database:
-                if meters.get(pk=pk).meter_csv_file:
-                    pass
+                file_path = meters.get(pk=pk).meter_csv_file
+
+                if file_path:
+                    self.post_data_for_page(file, file_path)
                 else:
-                    meters.get(pk=pk).meter_csv_file = file.name
+                    meter_without_file = meters.get(pk=pk)
+                    meter_without_file.meter_csv_file = file
+                    meter_without_file.save()
         else:
-            return render(request, 'meter/meter_details.html', context={'pk': pk, 'file_upload_form': file_upload_form})
-
-
-            # file = request.FILES.get('meter_file')
-            # if self.check_file_extention(file):
-            #     file.name = f"{pk}.csv"
-            #     meter = Meter.objects.get(pk=pk)
-            #     if meter.meter_csv_file:
-            #         file_path = str(meter.meter_csv_file)
-            #         self.get_ordered_value_key_and_dates_dict_from_not_existing_csv(file_path=file_path, file=file,
-            #                                                                         pk=pk)
-            #     else:
-            #         meter.meter_csv_file = file
-            #         meter.save()
-            #         file_path = str(meter.meter_csv_file)
+            request.session['file_upload_form'] = file_upload_form.errors.as_text().split('*')[2:]
+            return redirect(request.path)
 
         return redirect(request.path)
 
     def get(self, request, pk):
+        errors = request.session.get('file_upload_form', None)
         file_upload_form = DataFileUploadForm()
 
         meters = Meter.objects
@@ -218,20 +172,20 @@ class MeterDetails(View, DataReadHelper):
         last_reading_date, last_reading = None, None
         x_y_axis_data = dict()
 
+        if errors is not None:
+            del (request.session['file_upload_form'])
+
         if is_pk_in_database:
-
             meter_file_path = meters.get(pk=pk).meter_csv_file or None
-
             if meter_file_path:
                 x_y_axis_data, last_reading_date, last_reading = self.get_data_for_page(meter_file_path)
-
         else:
             raise Http404
 
         return render(request, 'meter/meter_details.html',
                       {"meter": meters.get(pk=pk), 'pk': pk, 'last_reading_date': last_reading_date,
                        'last_reading': last_reading, 'x_axis': list(x_y_axis_data.keys()),
-                       'y_axis': list(x_y_axis_data.values()), 'file_upload_form': file_upload_form})
+                       'y_axis': list(x_y_axis_data.values()), 'file_upload_form': file_upload_form, 'errors': errors})
 
 
 class NewMeter(View):
