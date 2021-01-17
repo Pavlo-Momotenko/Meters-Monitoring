@@ -36,9 +36,9 @@
     background: #f1f7ff;
 }
 
-.accordion-error.collapsed {
+.accordion-error-button.collapsed {
     background:#ccc;
 }
-.accordion-error:not(.collapsed) {
+.accordion-error-button:not(.collapsed) {
     background:#ee6666;
 }
