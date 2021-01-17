@@ -34,7 +34,7 @@ class DataReadHelper:
         for data_row in dictionary:
             if 'DATE' in data_row and 'VALUE' in data_row:
                 if data_row['DATE'] and data_row['VALUE']:
-                    try:
+                    try: #Write and check try/exept
                         formatted_dict[self.get_date_from_string(data_row['DATE'])] = round(float(data_row['VALUE']), 1)
                     except ValueError:
                         self.errors = 0
@@ -75,7 +75,7 @@ class DataReadHelper:
                     start_point = value
                 line += 1
 
-        return True if not dates else f'MeterValueError: dates {dates} have values that decreasing in time, please change it and try upload again.'
+        return None if not dates else f'MeterValueError: dates {dates} have values that decreasing in time, please change it and try upload again.'
 
     @staticmethod
     def get_time_relative_consumptions(dictionary, start_point):
@@ -185,10 +185,10 @@ class MeterDetails(View, DataReadHelper):
                 file_path = meters.get(pk=pk).meter_csv_file
 
                 if file_path:
+                    #Csv validation here!
                     self.post_data_for_page(file, file_path)
                 else:
                     error = self.is_time_relative_consumptions_right(file)
-
                     if not error:
                         meter_without_file = meters.get(pk=pk)
                         meter_without_file.meter_csv_file = file
