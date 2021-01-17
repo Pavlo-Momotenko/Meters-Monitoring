@@ -35,3 +35,10 @@
 .highcharts-data-table tr:hover {
     background: #f1f7ff;
 }
+
+.accordion-error.collapsed {
+    background:#ccc;
+}
+.accordion-error:not(.collapsed) {
+    background:#ee6666;
+}

@@ -38,30 +38,31 @@
     <div class="card border-secondary mb-3 m-5" style="max-width: 100%;">
         <div class="card-body text-dark row">
             {% if errors %}
-                <div class="alert alert-danger" role="alert" style="">
+                <div class="alert alert-danger ms-auto me-auto" role="alert" style="width: 98.4%; padding: .96%; padding-left: 1.4%; padding-top: .98%; padding-bottom: .91%">
                     {% for error in errors %}
                         &#128204;{{ error|safe }}
                     {% endfor %}
                 </div>
             {% endif %}
 
-            {% if accordion_errors %}
-                {% for error_header, error_body in accordion_errors.items %}
-                    <div class="accordion" id="accordionExample" style="">
+{#            {% if accordion_errors %}#}
+                {% if 5 == 5 %}
+{#                {% for error_header, error_body in accordion_errors.items %}#}
+                    <div class="accordion" id="accordionExample">
                         <div class="accordion-item">
                             <h2 class="accordion-header" id="heading">
                                 <button class="accordion-button collapsed border-danger" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
-                                    &#128204;&nbsp;{{ error_header|safe }}
+                                    &#128204;&nbsp;{{ error_header|safe }}xlvxclvxcv
                                 </button>
                             </h2>
                             <div id="collapseThree" class="accordion-collapse collapse" aria-labelledby="heading" data-bs-parent="#accordionExample">
                                 <div class="accordion-body">
-                                    {{ error_body }}
+                                    {{ error_body }}sdfsdf
                                 </div>
                             </div>
                         </div>
                     </div>
-                {% endfor %}
+{#                {% endfor %}#}
             {% endif %}
 
             <form action="{% url 'meter_details' pk %}" method="post" enctype="multipart/form-data" class="col-10 row">
