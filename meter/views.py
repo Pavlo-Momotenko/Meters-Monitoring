@@ -14,7 +14,7 @@ from meter.models import Meter
 
 # Create your views here.
 
-class DataReadHelper:
+class ManageDataHelper:
     @staticmethod
     def get_date_from_string(date):
         return datetime.datetime.strptime(date, '%Y-%m-%d')
@@ -76,9 +76,7 @@ class DataReadHelper:
                 else:
                     start_point = value
                 line += 1
-
-
-        return None if not dates else f'MeterValueError: dates {dates} have values that decreasing in time, please change it and try upload again.'
+        return None if not dates else f'MeterValueError: dates <strong>&nbsp;[CLICK TO SEE]&nbsp;</strong> have values that decreasing in time, please change it and try upload again.\n{dates}'
 
     @staticmethod
     def get_time_relative_consumptions(dictionary, start_point):
@@ -163,7 +161,7 @@ class IndexPage(View):
         return render(request, 'meter/index.html', {"meters": all_meters, "success": success})
 
 
-class MeterDetails(View, DataReadHelper):
+class MeterDetails(View, ManageDataHelper):
     def post(self, request, pk):
         file_upload_form = DataFileUploadForm(request.POST, request.FILES)
 
@@ -223,6 +221,8 @@ class MeterDetails(View, DataReadHelper):
 
     def get(self, request, pk):
         errors = request.session.get('file_upload_form', None)
+        accordion_errors = dict()
+
         file_upload_form = DataFileUploadForm()
 
         meters = Meter.objects
@@ -232,7 +232,16 @@ class MeterDetails(View, DataReadHelper):
         x_y_axis_data = dict()
 
         if errors is not None:
+            for error in errors:
+                if '\n' in error:
+                    a, b = error.split('\n')
+                    accordion_errors[str(a)] = str(b)
+
+        if errors is not None:
             del (request.session['file_upload_form'])
+
+        if accordion_errors:
+            errors = None
 
         if is_pk_in_database:
             meter_file_path = meters.get(pk=pk).meter_csv_file or None
@@ -244,7 +253,8 @@ class MeterDetails(View, DataReadHelper):
         return render(request, 'meter/meter_details.html',
                       {"meter": meters.get(pk=pk), 'pk': pk, 'last_reading_date': last_reading_date,
                        'last_reading': last_reading, 'x_axis': list(x_y_axis_data.keys()),
-                       'y_axis': list(x_y_axis_data.values()), 'file_upload_form': file_upload_form, 'errors': errors})
+                       'y_axis': list(x_y_axis_data.values()), 'file_upload_form': file_upload_form, 'errors': errors,
+                       'accordion_errors': accordion_errors})
 
 
 class NewMeter(View):

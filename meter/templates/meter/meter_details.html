@@ -37,18 +37,32 @@
 
     <div class="card border-secondary mb-3 m-5" style="max-width: 100%;">
         <div class="card-body text-dark row">
+            {% if errors %}
+                <div class="alert alert-danger" role="alert" style="">
+                    {% for error in errors %}
+                        &#128204;{{ error|safe }}
+                    {% endfor %}
+                </div>
+            {% endif %}
 
-            <div class="row">
-                {% if errors %}
-                    <div class="alert alert-danger" role="alert" style="margin-bottom: 1em; margin-left: .7em; padding-bottom: .1em;">
-                        <ul style="list-style-type: '\1F4CC'">
-                            {% for error in errors %}
-                                <li>{{ error }}</li>
-                            {% endfor %}
-                        </ul>
+            {% if accordion_errors %}
+                {% for error_header, error_body in accordion_errors.items %}
+                    <div class="accordion" id="accordionExample" style="">
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="heading">
+                                <button class="accordion-button collapsed border-danger" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                                    &#128204;&nbsp;{{ error_header|safe }}
+                                </button>
+                            </h2>
+                            <div id="collapseThree" class="accordion-collapse collapse" aria-labelledby="heading" data-bs-parent="#accordionExample">
+                                <div class="accordion-body">
+                                    {{ error_body }}
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                {% endif %}
-            </div>
+                {% endfor %}
+            {% endif %}
 
             <form action="{% url 'meter_details' pk %}" method="post" enctype="multipart/form-data" class="col-10 row">
                 {% csrf_token %}
