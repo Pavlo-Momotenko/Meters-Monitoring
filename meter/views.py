@@ -2,6 +2,7 @@ import csv
 import datetime
 import operator
 import os
+from copy import deepcopy
 
 from django.http import Http404
 from django.shortcuts import render, redirect
@@ -34,13 +35,12 @@ class DataReadHelper:
         for data_row in dictionary:
             if 'DATE' in data_row and 'VALUE' in data_row:
                 if data_row['DATE'] and data_row['VALUE']:
-                    try: #Write and check try/exept
-                        formatted_dict[self.get_date_from_string(data_row['DATE'])] = round(float(data_row['VALUE']), 1)
-                    except ValueError:
-                        self.errors = 0
+                    # try:
+                    formatted_dict[self.get_date_from_string(data_row['DATE'])] = round(float(data_row['VALUE']), 1)
+                    # except ValueError:
+                    #     pass
             else:
                 break
-
         return formatted_dict
 
     @staticmethod
@@ -57,9 +57,11 @@ class DataReadHelper:
 
         return x_y_axis_data
 
-    def is_time_relative_consumptions_right(self, file):
-        reader = csv.DictReader(file.read().decode('utf-8').splitlines())
-        sorted_dict = self.get_sorted_dictionary(self.get_formatted_dict(reader))
+    def is_time_relative_consumptions_right(self, file=None, sorted_dict=None):
+        if file:
+            reader = csv.DictReader(file.read().decode('utf-8').splitlines())
+            sorted_dict = self.get_sorted_dictionary(self.get_formatted_dict(reader))
+
         keys = list(sorted_dict.keys())
         is_correct = True if keys.sort() == keys else None
         dates = list()
@@ -75,6 +77,7 @@ class DataReadHelper:
                     start_point = value
                 line += 1
 
+
         return None if not dates else f'MeterValueError: dates {dates} have values that decreasing in time, please change it and try upload again.'
 
     @staticmethod
@@ -89,7 +92,7 @@ class DataReadHelper:
 
     def post_data_for_page(self, file,  file_path):
         reader = csv.DictReader(file.read().decode('utf-8').splitlines())
-        sorted_data_in_existed_meter = dict()
+        sorted_data_in_existed_meter = None
 
         if os.path.exists(str(file_path)):
             sorted_data_in_existed_meter = self.get_data_from_file(file_path)
@@ -100,7 +103,14 @@ class DataReadHelper:
         new_data.update(sorted_data_in_existed_meter)
         new_data.update(new_data_for_existed_meter)
 
-        self.write_new_file_from_dictionary(file_path, new_data)
+        errors = self.is_time_relative_consumptions_right(sorted_dict=new_data)
+
+        if not errors:
+            self.write_new_file_from_dictionary(file_path, new_data)
+        else:
+            return errors
+
+        return False
 
     def get_data_for_page(self, file_path):
         x_y_axis_data, last_reading_date, last_reading = dict(), None, None
@@ -185,10 +195,19 @@ class MeterDetails(View, DataReadHelper):
                 file_path = meters.get(pk=pk).meter_csv_file
 
                 if file_path:
-                    #Csv validation here!
-                    self.post_data_for_page(file, file_path)
+                    error = self.is_time_relative_consumptions_right(file=deepcopy(file))
+                    if not error:
+                        loaded_new_data = self.post_data_for_page(file, file_path)
+                        if not loaded_new_data:
+                            file_upload_form.add_error('file', error)
+                            request.session['file_upload_form'] = [error, ]
+                            return redirect(request.path)
+                    else:
+                        file_upload_form.add_error('file', error)
+                        request.session['file_upload_form'] = [error, ]
+                        return redirect(request.path)
                 else:
-                    error = self.is_time_relative_consumptions_right(file)
+                    error = self.is_time_relative_consumptions_right(file=file)
                     if not error:
                         meter_without_file = meters.get(pk=pk)
                         meter_without_file.meter_csv_file = file
