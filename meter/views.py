@@ -110,8 +110,6 @@ class DataReadHelper:
         else:
             return errors
 
-        return False
-
     def get_data_for_page(self, file_path):
         x_y_axis_data, last_reading_date, last_reading = dict(), None, None
         x_y_axis_data = self.get_data_from_file(file_path)
@@ -198,9 +196,10 @@ class MeterDetails(View, DataReadHelper):
                     error = self.is_time_relative_consumptions_right(file=deepcopy(file))
                     if not error:
                         loaded_new_data = self.post_data_for_page(file, file_path)
-                        if not loaded_new_data:
-                            file_upload_form.add_error('file', error)
-                            request.session['file_upload_form'] = [error, ]
+                        print('received data', loaded_new_data)
+                        if loaded_new_data:
+                            file_upload_form.add_error('file', loaded_new_data)
+                            request.session['file_upload_form'] = [loaded_new_data, ]
                             return redirect(request.path)
                     else:
                         file_upload_form.add_error('file', error)
