@@ -34,8 +34,10 @@ class DataReadHelper:
         for data_row in dictionary:
             if 'DATE' in data_row and 'VALUE' in data_row:
                 if data_row['DATE'] and data_row['VALUE']:
-                    #ЗАПИЛИТЬ ТРАЙ ЕКСЕПТ
-                    formatted_dict[self.get_date_from_string(data_row['DATE'])] = round(float(data_row['VALUE']), 1)
+                    try:
+                        formatted_dict[self.get_date_from_string(data_row['DATE'])] = round(float(data_row['VALUE']), 1)
+                    except ValueError:
+                        self.errors = 0
             else:
                 break
 
@@ -55,9 +57,37 @@ class DataReadHelper:
 
         return x_y_axis_data
 
+    def is_time_relative_consumptions_right(self, file):
+        reader = csv.DictReader(file.read().decode('utf-8').splitlines())
+        sorted_dict = self.get_sorted_dictionary(self.get_formatted_dict(reader))
+        keys = list(sorted_dict.keys())
+        is_correct = True if keys.sort() == keys else None
+        dates = list()
+
+        if not is_correct:
+            line = 1
+            start_point = sorted_dict.pop(min(sorted_dict), 0)
+
+            for key, value in sorted_dict.items():
+                if round(value - start_point, 1) < 0:
+                    dates.append(key.strftime('%Y-%m-%d'))
+                else:
+                    start_point = value
+                line += 1
+
+        return True if not dates else f'MeterValueError: dates {dates} have values that decreasing in time, please change it and try upload again.'
+
     @staticmethod
-    def
-    def post_data_for_page(self, file, file_path):
+    def get_time_relative_consumptions(dictionary, start_point):
+        if dictionary and start_point:
+            start_point = dictionary.pop(start_point, 0)
+            for key, value in dictionary.items():
+                dictionary[key] = round(value - start_point, 1)
+                start_point = value
+
+        return dictionary
+
+    def post_data_for_page(self, file,  file_path):
         reader = csv.DictReader(file.read().decode('utf-8').splitlines())
         sorted_data_in_existed_meter = dict()
 
@@ -80,6 +110,8 @@ class DataReadHelper:
             x_y_axis_data = self.get_sorted_dictionary(x_y_axis_data)
             last_reading_date = max(x_y_axis_data)
             last_reading = x_y_axis_data[last_reading_date]
+
+        x_y_axis_data = self.get_time_relative_consumptions(x_y_axis_data, min(x_y_axis_data))
 
         return x_y_axis_data, last_reading_date, last_reading
 
@@ -155,9 +187,16 @@ class MeterDetails(View, DataReadHelper):
                 if file_path:
                     self.post_data_for_page(file, file_path)
                 else:
-                    meter_without_file = meters.get(pk=pk)
-                    meter_without_file.meter_csv_file = file
-                    meter_without_file.save()
+                    error = self.is_time_relative_consumptions_right(file)
+
+                    if not error:
+                        meter_without_file = meters.get(pk=pk)
+                        meter_without_file.meter_csv_file = file
+                        meter_without_file.save()
+                    else:
+                        file_upload_form.add_error('file', error)
+                        request.session['file_upload_form'] = [error, ]
+                        return redirect(request.path)
         else:
             request.session['file_upload_form'] = file_upload_form.errors.as_text().split('*')[2:]
             return redirect(request.path)
