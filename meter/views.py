@@ -194,7 +194,6 @@ class MeterDetails(View, ManageDataHelper):
                     error = self.is_time_relative_consumptions_right(file=deepcopy(file))
                     if not error:
                         loaded_new_data = self.post_data_for_page(file, file_path)
-                        print('received data', loaded_new_data)
                         if loaded_new_data:
                             file_upload_form.add_error('file', loaded_new_data)
                             request.session['file_upload_form'] = [loaded_new_data, ]
@@ -235,7 +234,7 @@ class MeterDetails(View, ManageDataHelper):
             for error in errors:
                 if '\n' in error:
                     a, b = error.split('\n')
-                    accordion_errors[str(a)] = str(b)
+                    accordion_errors[a] = b.replace('[', '').replace(']', '').replace('\'', '').replace(' ', '').split(',')
 
         if errors is not None:
             del (request.session['file_upload_form'])
