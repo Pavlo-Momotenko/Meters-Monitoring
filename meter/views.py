@@ -61,21 +61,26 @@ class ManageDataHelper:
         if file:
             reader = csv.DictReader(file.read().decode('utf-8').splitlines())
             sorted_dict = self.get_sorted_dictionary(self.get_formatted_dict(reader))
+        else:
+            sorted_dict = self.get_sorted_dictionary(sorted_dict)
 
         keys = list(sorted_dict.keys())
         is_correct = True if keys.sort() == keys else None
         dates = list()
+        # print('sorted_dict', sorted_dict)
 
         if not is_correct:
             line = 1
             start_point = sorted_dict.pop(min(sorted_dict), 0)
-
+            # print(start_point)
             for key, value in sorted_dict.items():
+                # print(round(value - start_point, 1))
                 if round(value - start_point, 1) < 0:
                     dates.append(key.strftime('%Y-%m-%d'))
                 else:
                     start_point = value
                 line += 1
+
         return None if not dates else f'MeterValueError: dates <strong>&nbsp;[CLICK TO SEE]&nbsp;</strong> have values that decreasing in time, please change it and try upload again.\n{dates}'
 
     @staticmethod
@@ -101,6 +106,7 @@ class ManageDataHelper:
         new_data.update(sorted_data_in_existed_meter)
         new_data.update(new_data_for_existed_meter)
 
+        # print()
         errors = self.is_time_relative_consumptions_right(sorted_dict=new_data)
 
         if not errors:
@@ -261,3 +267,19 @@ class NewMeter(View):
     def get(request):
         new_meter_form = CreateMeterForm()
         return render(request, 'meter/new_meter.html', {'new_meter_form': new_meter_form})
+
+
+def bad_request(request, exception):
+    return render(request, 'meter/400.html')
+
+
+def permission_denied(request, exception):
+    return render(request, 'meter/403.html')
+
+
+def page_not_found(request, exception):
+    return render(request, 'meter/404.html')
+
+
+def server_error(request):
+    return render(request, 'meter/500.html')

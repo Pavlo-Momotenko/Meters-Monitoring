@@ -15,13 +15,18 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-
+from django.conf.urls import handler400, handler403, handler404, handler500
 from meter import views
+
+handler400 = 'meter.views.bad_request'
+handler403 = 'meter.views.permission_denied'
+handler404 = 'meter.views.page_not_found'
+handler500 = 'meter.views.server_error'
 
 urlpatterns = [
     path('', views.IndexPage.as_view(), name='index'),
     path('home', views.IndexPage.as_view(), name='index'),
     path('new_meter', views.NewMeter.as_view(), name='new_meter'),
-    path('meter/<pk>', views.MeterDetails.as_view(), name='meter_details'),
+    path('meter/<int:pk>', views.MeterDetails.as_view(), name='meter_details'),
     path('admin', admin.site.urls),
 ]
