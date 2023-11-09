@@ -21,4 +21,8 @@
    ```
 5. Run server: `python manage.py runserver`
 
+## Project demo
+[Link to the demo record on YouTube](https://www.youtube.com/watch?v=mCyQPQVEfO4)
+[![Project demo](https://img.youtube.com/vi/mCyQPQVEfO4/maxresdefault.jpg)](https://www.youtube.com/watch?v=mCyQPQVEfO4)
+
 [settings-location]: MetersMonitoring/settings.py
