@@ -1,4 +1,4 @@
-{% load static %}
+{% load static filter_messages_by_level %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,28 +6,37 @@
 
     <title>{% block title %}{% endblock %}</title>
 
-    <link rel="stylesheet" type="text/css" href="{% static 'bootstrap/css/bootstrap.css' %}">
-    <script type="text/javascript" src="{% static 'bootstrap/js/bootstrap.js' %}"></script>
-
-    <script type="text/javascript" src="{% static 'jquery/jquery-3.5.1.min.js' %}"></script>
-
-    <link rel="shortcut icon" type="image/png" href="{% static 'favicon.ico' %}"/>
-
-    <script type="text/javascript" src="{% static 'highcharts/highcharts.js' %}"></script>
-    <script type="text/javascript" src="{% static 'highcharts/exporting.js' %}"></script>
-    <script type="text/javascript" src="{% static 'highcharts/export-data.js' %}"></script>
-    <script type="text/javascript" src="{% static 'highcharts/accessibility.js' %}"></script>
-    <script type="text/javascript" src="{% static 'highcharts/series-label.js' %}"></script>
-
+    <link rel="stylesheet" type="text/css" href="{% static 'bootstrap/css/bootstrap.min.css' %}">
+    <link href="{% static 'data_tables/datatables.min.css' %}" rel="stylesheet">
     {% block styles %}{% endblock %}
 
+    <link rel="shortcut icon" type="image/png" href="{% static 'favicon.ico' %}"/>
 </head>
 <body>
+{% include 'components/navbar.html' %}
 
-<div>
+<main class="container my-5">
     {% block content %}{% endblock %}
-</div>
+</main>
 
+{% block toasts %}
+    <div class="toast-container position-fixed bottom-0 end-0 p-3">
+        {% include "components/toasts/success.html" with success_messages=messages|filter_messages_by_level:DEFAULT_MESSAGE_LEVELS.SUCCESS %}
+        {% include "components/toasts/error.html" with error_messages=messages|filter_messages_by_level:DEFAULT_MESSAGE_LEVELS.ERROR %}
+    </div>
+{% endblock %}
+
+<script type="text/javascript" src="{% static 'bootstrap/js/bootstrap.min.js' %}"></script>
+
+<script type="text/javascript" src="{% static 'jquery/jquery-3.5.1.min.js' %}"></script>
+
+<script type="text/javascript" src="{% static 'highcharts/highcharts.js' %}"></script>
+<script type="text/javascript" src="{% static 'highcharts/exporting.js' %}"></script>
+<script type="text/javascript" src="{% static 'highcharts/export-data.js' %}"></script>
+<script type="text/javascript" src="{% static 'highcharts/accessibility.js' %}"></script>
+<script type="text/javascript" src="{% static 'highcharts/series-label.js' %}"></script>
+
+<script src="{% static 'data_tables/datatables.min.js' %}"></script>
 {% block scripts %}{% endblock %}
 
 </body>
