@@ -5,8 +5,8 @@
 ## Launching
 
 1. Clone this repository.
-2. Install requirements: `pip install -r requirements.txt`.
-3. Create MySQL database `create database meters_monitoring;`.
+2. Install requirements: `pip install -r requirements.txt`
+3. Create MySQL database `create database meters_monitoring;`
 4. Change settings in [`settings.py`][settings-location] if needed: 
    ```
    DATABASES = {
