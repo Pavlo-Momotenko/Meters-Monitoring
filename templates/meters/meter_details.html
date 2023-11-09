@@ -1,0 +1,189 @@
+{% extends 'base.html' %}
+{% load static total %}
+
+{% block title %}
+    {{ meter.name }} details
+{% endblock %}
+
+{% block content %}
+    <h1>{{ meter.name }} details</h1>
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url "main" %}">Home</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ meter.name }}</li>
+        </ol>
+    </nav>
+
+    <h3>Summary</h3>
+    <div class="d-flex flex-wrap justify-content-between">
+        <div class="card d-flex flex-row mb-3" style="width: 270px">
+            <div class="m-4 d-flex align-items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-box"
+                     viewBox="0 0 16 16">
+                    <path d="M8.186 1.113a.5.5 0 0 0-.372 0L1.846 3.5 8 5.961 14.154 3.5 8.186 1.113zM15 4.239l-6.5 2.6v7.922l6.5-2.6V4.24zM7.5 14.762V6.838L1 4.239v7.923l6.5 2.6zM7.443.184a1.5 1.5 0 0 1 1.114 0l7.129 2.852A.5.5 0 0 1 16 3.5v8.662a1 1 0 0 1-.629.928l-7.185 2.874a.5.5 0 0 1-.372 0L.63 13.09a1 1 0 0 1-.63-.928V3.5a.5.5 0 0 1 .314-.464L7.443.184z"></path>
+                </svg>
+            </div>
+            <div class="card-body">
+                <h5 class="card-title">Resource</h5>
+                <p class="card-text text-dark-emphasis">{{ meter.resource }}</p>
+            </div>
+        </div>
+        <div class="card d-flex flex-row mb-3" style="width: 270px">
+            <div class="m-4 d-flex align-items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor"
+                     class="bi bi-database" viewBox="0 0 16 16">
+                    <path d="M4.318 2.687C5.234 2.271 6.536 2 8 2s2.766.27 3.682.687C12.644 3.125 13 3.627 13 4c0 .374-.356.875-1.318 1.313C10.766 5.729 9.464 6 8 6s-2.766-.27-3.682-.687C3.356 4.875 3 4.373 3 4c0-.374.356-.875 1.318-1.313ZM13 5.698V7c0 .374-.356.875-1.318 1.313C10.766 8.729 9.464 9 8 9s-2.766-.27-3.682-.687C3.356 7.875 3 7.373 3 7V5.698c.271.202.58.378.904.525C4.978 6.711 6.427 7 8 7s3.022-.289 4.096-.777A4.92 4.92 0 0 0 13 5.698ZM14 4c0-1.007-.875-1.755-1.904-2.223C11.022 1.289 9.573 1 8 1s-3.022.289-4.096.777C2.875 2.245 2 2.993 2 4v9c0 1.007.875 1.755 1.904 2.223C4.978 15.71 6.427 16 8 16s3.022-.289 4.096-.777C13.125 14.755 14 14.007 14 13V4Zm-1 4.698V10c0 .374-.356.875-1.318 1.313C10.766 11.729 9.464 12 8 12s-2.766-.27-3.682-.687C3.356 10.875 3 10.373 3 10V8.698c.271.202.58.378.904.525C4.978 9.71 6.427 10 8 10s3.022-.289 4.096-.777A4.92 4.92 0 0 0 13 8.698Zm0 3V13c0 .374-.356.875-1.318 1.313C10.766 14.729 9.464 15 8 15s-2.766-.27-3.682-.687C3.356 13.875 3 13.373 3 13v-1.302c.271.202.58.378.904.525C4.978 12.71 6.427 13 8 13s3.022-.289 4.096-.777c.324-.147.633-.323.904-.525Z"></path>
+                </svg>
+            </div>
+            <div class="card-body">
+                <h5 class="card-title">Unit</h5>
+                <p class="card-text text-dark-emphasis">{{ meter.unit }}</p>
+            </div>
+        </div>
+        <div class="card d-flex flex-row mb-3" style="width: 270px">
+            <div class="m-4 d-flex align-items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor"
+                     class="bi bi-activity" viewBox="0 0 16 16">
+                    <path fill-rule="evenodd"
+                          d="M6 2a.5.5 0 0 1 .47.33L10 12.036l1.53-4.208A.5.5 0 0 1 12 7.5h3.5a.5.5 0 0 1 0 1h-3.15l-1.88 5.17a.5.5 0 0 1-.94 0L6 3.964 4.47 8.171A.5.5 0 0 1 4 8.5H.5a.5.5 0 0 1 0-1h3.15l1.88-5.17A.5.5 0 0 1 6 2Z"></path>
+                </svg>
+            </div>
+            <div class="card-body">
+                <h5 class="card-title">Last reading</h5>
+                <p class="card-text text-dark-emphasis">
+                    {% if consumption_and_expenses_data %}
+                        {% with consumption_and_expenses_data|last as last_reading %}
+                            {{ last_reading.absolute_reading }}
+                        {% endwith %}
+                    {% else %}
+                        N/A
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+        <div class="card d-flex flex-row mb-3" style="width: 270px">
+            <div class="m-4 d-flex align-items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor"
+                     class="bi bi-calendar-event" viewBox="0 0 16 16">
+                    <path d="M11 6.5a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1z"></path>
+                    <path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4H1z"></path>
+                </svg>
+            </div>
+            <div class="card-body">
+                <h5 class="card-title">Last reading date</h5>
+                <p class="card-text text-dark-emphasis">
+                    {% if consumption_and_expenses_data %}
+                        {% with consumption_and_expenses_data|last as last_reading %}
+                            {{ last_reading.date }}
+                        {% endwith %}
+                    {% else %}
+                        N/A
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <h3>Consumption and expenses</h3>
+    <div class="card mb-5">
+        <div class="card-body">
+            {% if not consumption_and_expenses_data %}
+                <div class="text-center my-5">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="currentColor"
+                         class="bi bi-graph-up mx-auto text-body-secondary" viewBox="0 0 16 16">
+                        <path fill-rule="evenodd"
+                              d="M0 0h1v15h15v1H0V0Zm14.817 3.113a.5.5 0 0 1 .07.704l-4.5 5.5a.5.5 0 0 1-.74.037L7.06 6.767l-3.656 5.027a.5.5 0 0 1-.808-.588l4-5.5a.5.5 0 0 1 .758-.06l2.609 2.61 4.15-5.073a.5.5 0 0 1 .704-.07Z"></path>
+                    </svg>
+                    <h5 class="mt-2">No data</h5>
+                    <p class="text-body-tertiary mt-1">Get started by importing readings.</p>
+                </div>
+            {% else %}
+                <div id="consumption-and-expenses"></div>
+            {% endif %}
+        </div>
+    </div>
+    {% include "readings/components/data_table.html" %}
+    {% include "tariffs/components/data_table.html" %}
+{% endblock %}
+
+{% block scripts %}
+    {% if consumption_and_expenses_data %}
+        <script type="text/javascript">
+            Highcharts.chart('consumption-and-expenses', {
+                chart: {
+                    zoomType: 'xy'
+                },
+                credits: {
+                    enabled: false
+                },
+                title: {
+                    text: '',
+                },
+                xAxis: [{
+                    categories: [{% for data in consumption_and_expenses_data %}"{{ data.date }}",{% endfor %}],
+                    crosshair: true
+                }],
+                yAxis: [
+                    { // Primary yAxis
+                        labels: {
+                            format: '{value}$',
+                        },
+                        title: {
+                            text: 'Expenses',
+                        }
+                    },
+                    { // Secondary yAxis
+                        title: {
+                            text: 'Consumption',
+                        },
+                        labels: {
+                            format: '{value} mm',
+                        },
+                        opposite: true
+                    }
+                ],
+                tooltip: {
+                    shared: true
+                },
+                series: [
+                    {
+                        name: 'Consumption relative',
+                        type: 'column',
+                        yAxis: 1,
+                        data: [{% for data in consumption_and_expenses_data %}{{ data.relative_reading }}, {% endfor %}],
+                        color: "#2caffd",
+                        tooltip: {
+                            valueSuffix: ' {{ meter.unit }}',
+                            valueDecimals: 1,
+                        }
+
+                    },
+                    {
+                        name: 'Consumption absolute',
+                        type: 'spline',
+                        yAxis: 1,
+                        data: [{% for data in consumption_and_expenses_data %}{{ data.absolute_reading }}, {% endfor %}],
+                        color: "#00e272",
+                        visible: false,
+                        tooltip: {
+                            valueSuffix: ' {{ meter.unit }}',
+                            valueDecimals: 1,
+                        }
+
+                    },
+                    {
+                        name: 'Expenses',
+                        type: 'column',
+                        data: [{% for data in consumption_and_expenses_data %}{{ data.expenses }}, {% endfor %}],
+                        color: "#544fc5",
+                        tooltip: {
+                            valueSuffix: '$',
+                            valueDecimals: 2,
+                        }
+                    }
+                ]
+            });
+        </script>
+    {% endif %}
+    <script type="text/javascript">new DataTable("#readings");</script>
+{% endblock %}
